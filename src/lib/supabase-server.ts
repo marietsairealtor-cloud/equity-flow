@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 export async function supabaseServer() {
@@ -14,10 +14,12 @@ export async function supabaseServer() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {}
+            cookiesToSet.forEach(({ name, value, options }: any) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // ignore if running in a context where cookies are read-only
+          }
         },
       },
     }
