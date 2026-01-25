@@ -1,4 +1,4 @@
-﻿import { supabaseServer } from "@/lib/supabase-server";
+import { supabaseServer } from "@/lib/supabase-server";
 import LogoutButton from "../LogoutButton";
 import CreateDealButton from "./CreateDealButton";
 
@@ -24,7 +24,7 @@ export default async function DealsPage() {
       <ul>
         {(deals ?? []).map((d) => (
           <li key={d.id}>
-            <a href={`/app/deals/${d.id}`}>{d.id}</a>{" "}
+            <a href={`/app/deals/${d.id}`}>{d.id}</a> <span style={{ marginLeft: 10 }}><a href={`/app/deals/${d.id}/documents`}>Documents</a></span>{" "}
             — {d.status} — {d.created_at}
           </li>
         ))}
