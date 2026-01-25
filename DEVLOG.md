@@ -9,3 +9,11 @@ Commit: 3798444
 - Invites end-to-end (create/list/revoke + accept flows present), seat primitives in place.
 - DB migrations pushed; remote database up to date.
 
+## 2026-01-25 — Week 3 started: Upgrade & Save idempotency
+Commit: 4e5a0cf
+
+- Added deals.idempotency_key + unique (tenant_id, idempotency_key).
+- Replaced provision_upgrade_save with single PostgREST-friendly signature:
+  provision_upgrade_save(p_first_deal jsonb, p_idempotency_key text, p_workspace_name text)
+- Verified retry returns the same deal_id for same idempotency_key.
+
