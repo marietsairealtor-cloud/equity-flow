@@ -1,82 +1,49 @@
-﻿import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
-import CreateInviteForm from "./CreateInviteForm";
-import RevokeButton from "./RevokeButton";
+import { supabaseServer } from "@/lib/supabase/server";
+import InvitesClient from "./ui";
 
-type SearchParams = { show?: string };
+type InviteRow = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  token: string | null;
+  created_at: string;
+};
 
-export default async function InvitesPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const supabase = await createSupabaseServerClient();
+export default async function InvitesPage() {
+  const supabase = await supabaseServer();
 
-  const { data: ent, error: entErr } = await supabase.rpc("get_entitlements");
-  if (entErr) redirect("/login");
+  const ent = await supabase.rpc("get_entitlements");
+  const tenantId = (ent.data?.[0]?.tenant_id as string | null) ?? null;
+  const workspaceName = (ent.data?.[0]?.workspace_name as string | null) ?? "";
 
-  const entRow = Array.isArray(ent) ? ent[0] : (ent as any);
-  const workspaceName = (entRow as any)?.workspace_name ?? "-";
-  const tenantId = entRow?.tenant_id as string | undefined;
+  if (!tenantId) {
+    return (
+      <div style={{ padding: 16 }}>
+        <div style={{ fontSize: 20, fontWeight: 800 }}>Invites</div>
+        <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>No workspace selected.</div>
+        <a href="/app/workspace" style={{ fontSize: 13 }}>Go to Workspace</a>
+      </div>
+    );
+  }
 
-  if (!tenantId) redirect("/app/workspace");
+  const seats = await supabase.rpc("get_current_tenant_seats");
+  const seatLimit = Number(seats.data?.[0]?.seat_limit ?? 0);
+  const seatCount = Number(seats.data?.[0]?.seat_count ?? 0);
 
-  const sp = await searchParams;
-  const showHistory = sp?.show === "all";
-
-  let q = supabase
+  const inv = await supabase
     .from("tenant_invites")
-    .select("id, invited_email, invited_role, created_at, expires_at, accepted_at, revoked_at")
+    .select("id,email,role,status,token,created_at")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
-  if (!showHistory) {
-    q = q.is("accepted_at", null).is("revoked_at", null);
-  }
-
-  const { data: invites, error: invErr } = await q;
-
   return (
-    <div style={{ padding: 16, display: "grid", gap: 16 }}>
-      <div style={{ fontSize: 20, fontWeight: 800 }}>Invites</div>
-
-      <CreateInviteForm tenantId={tenantId} workspaceName={workspaceName} />
-
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <a
-          href={showHistory ? "/app/invites" : "/app/invites?show=all"}
-          style={{ padding: "6px 10px", border: "1px solid #ddd", borderRadius: 8, textDecoration: "none" }}
-        >
-          {showHistory ? "Show open only" : "Show history"}
-        </a>
-      </div>
-
-      <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>
-          {showHistory ? "All Invites" : "Open Invites"}
-        </div>
-
-        {invErr && <div style={{ color: "crimson" }}>Select error: {invErr.message}</div>}
-
-        {!invites?.length ? (
-          <div>{showHistory ? "No invites." : "No open invites."}</div>
-        ) : (
-          <div style={{ display: "grid", gap: 8 }}>
-            {invites.map((i: any) => {
-              const isOpen = !i.accepted_at && !i.revoked_at;
-              return (
-                <div key={i.id} style={{ border: "1px solid #eee", padding: 10, borderRadius: 8, display: "grid", gap: 6 }}>
-                  <div><b>Email:</b> {i.invited_email}</div>
-                  <div><b>Role:</b> {i.invited_role}</div>
-                  <div><b>Created:</b> {i.created_at}</div>
-                  <div><b>Expires:</b> {i.expires_at}</div>
-                  <div><b>Accepted:</b> {i.accepted_at ?? "-"}</div>
-                  <div><b>Revoked:</b> {i.revoked_at ?? "-"}</div>
-
-                  {isOpen ? <RevokeButton inviteId={i.id} /> : null}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
+    <InvitesClient
+      tenantId={tenantId}
+      workspaceName={workspaceName ?? ""}
+      seatLimit={seatLimit}
+      seatCount={seatCount}
+      initialInvites={(inv.data ?? []) as any[]}
+    />
   );
 }
-
