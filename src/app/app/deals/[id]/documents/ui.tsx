@@ -54,10 +54,7 @@ function prettyBytes(n?: number | null) {
   const units = ["B", "KB", "MB", "GB"];
   let v = n;
   let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v = v / 1024;
-    i++;
-  }
+  while (v >= 1024 && i < units.length - 1) { v = v / 1024; i++; }
   return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
@@ -69,6 +66,7 @@ export default function DocumentsUI(props: {
   const [docs, setDocs] = useState<DocRow[]>(props.initialDocs ?? []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const hasDocs = useMemo(() => (docs?.length ?? 0) > 0, [docs]);
 
@@ -83,17 +81,19 @@ export default function DocumentsUI(props: {
     setDocs((r.data ?? []) as DocRow[]);
   }
 
-  async function onUpload(ev: React.ChangeEvent<HTMLInputElement>) {
+  async function uploadSelected() {
     setErr("");
-    const file = ev.target.files?.[0];
-    if (!file) return;
+    if (!file) { setErr("FILE_REQUIRED"); return; }
 
     setBusy(true);
     try {
-      if (!props.tenantId) throw new Error("NO_TENANT_SELECTED");
+      // Always re-check tenant on client via SECURITY DEFINER RPC
+      const t = await supabase.rpc("get_current_tenant_id");
+      const tenantId = (t.data as string | null) ?? props.tenantId;
+      if (!tenantId) throw new Error("NO_TENANT_SELECTED");
 
       const safeName = file.name.replace(/[^\w.\-]+/g, "_");
-      const storage_path = `${props.tenantId}/${props.dealId}/${Date.now()}_${safeName}`;
+      const storage_path = `${tenantId}/${props.dealId}/${Date.now()}_${safeName}`;
 
       const up = await supabase.storage.from("deal-files").upload(storage_path, file, {
         upsert: false,
@@ -111,7 +111,9 @@ export default function DocumentsUI(props: {
       if (doc.error) throw new Error(doc.error.message);
 
       await refresh();
-      ev.target.value = "";
+      setFile(null);
+      const el = document.getElementById("docFile") as HTMLInputElement | null;
+      if (el) el.value = "";
     } catch (e: any) {
       setErr(e?.message ?? "UPLOAD_FAILED");
     } finally {
@@ -134,18 +136,22 @@ export default function DocumentsUI(props: {
     <div style={UI.page}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
         <h1 style={UI.h1}>Documents</h1>
-        <a href={`/app/deals/${props.dealId}`} style={UI.link}>
-          Back to Deal
-        </a>
+        <a href={`/app/deals/${props.dealId}`} style={UI.link}>Back to Deal</a>
       </div>
 
       <div style={{ marginTop: 12, ...UI.card }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <input type="file" onChange={onUpload} disabled={busy} style={UI.input} />
-          <button disabled={true} style={{ ...UI.btn, opacity: 0.6 }}>
-            Storage policies required (dashboard)
+          <input
+            id="docFile"
+            type="file"
+            disabled={busy}
+            style={UI.input}
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+          <button onClick={uploadSelected} disabled={busy || !file} style={UI.btn}>
+            {busy ? "Uploading..." : "Upload"}
           </button>
-          {busy ? <div style={UI.subtle}>Working...</div> : null}
+          <div style={UI.subtle}>Storage policies still required (dashboard) for real uploads.</div>
         </div>
         {err ? <div style={UI.err}>{err}</div> : null}
       </div>
