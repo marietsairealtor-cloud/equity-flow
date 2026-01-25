@@ -63,33 +63,33 @@ export default function DocumentsClient(props: { dealId: string; tenantId: strin
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 900 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>Documents</h1>
-        <a href={`/app/deals/${props.dealId}`} style={{ fontSize: 13, color: "#444" }}>Back to Deal</a>
+    <div style={{ padding: 16, maxWidth: 900  }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10  }} />
+        <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0  }} />Documents</h1>
+        <a href={`/app/deals/${props.dealId}`} style={{ fontSize: 13, color: "#444"  }} />Back to Deal</a>
       </div>
 
-      <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
-        <input type="file" onChange={onUpload} disabled={busy} / style={{ color: "#eee", background: "#121212", border: "1px solid #3a3a3a", borderRadius: 10, padding: "8px 10px" }}>
-        {busy ? <div style={{ fontSize: 13 }}>Uploading...</div> : null}
+      <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center"  }} />
+        <input type="file" onChange={onUpload} disabled={busy}  style={{ color: "#eee", background: "#121212", border: "1px solid #3a3a3a", borderRadius: 10, padding: "8px 10px"  }} />
+        {busy ? <div style={{ fontSize: 13  }} />Uploading...</div> : null}
       </div>
 
-      {err ? ( <div style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #7a2a2a", background: "#1a0f0f", color: "#ffd0d0", fontSize: 12, whiteSpace: "pre-wrap" }}>
+      {err ? ( <div style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #7a2a2a", background: "#1a0f0f", color: "#ffd0d0", fontSize: 12, whiteSpace: "pre-wrap"  }} />
           {err}
         </div>
       ) : null}
 
-      <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
+      <div style={{ marginTop: 16, display: "grid", gap: 8  }} />
         {docs.length === 0 ? (
-          <div style={{ fontSize: 13, color: "#444" }}>No documents yet.</div>
+          <div style={{ fontSize: 13, color: "#444"  }} />No documents yet.</div>
         ) : (
           docs.map((d) => (
-            <div key={d.id} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #eee" }}>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>{d.file_name ?? d.storage_path.split("/").slice(-1)[0]}</div>
-              <div style={{ fontSize: 12, color: "#444" }}>
-                {d.mime_type ?? "-"} â€¢ {d.size_bytes ?? 0} bytes â€¢ {d.created_at}
+            <div key={d.id} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #eee"  }} />
+              <div style={{ fontWeight: 700, fontSize: 13  }} />{d.file_name ?? d.storage_path.split("/").slice(-1)[0]}</div>
+              <div style={{ fontSize: 12, color: "#444"  }} />
+                {d.mime_type ?? "-"} Ã¢â‚¬Â¢ {d.size_bytes ?? 0} bytes Ã¢â‚¬Â¢ {d.created_at}
               </div>
-              <div style={{ marginTop: 6 }}>
+              <div style={{ marginTop: 6  }} />
                 <a
                   href="#"
                   onClick={async (ev) => {
@@ -98,8 +98,7 @@ export default function DocumentsClient(props: { dealId: string; tenantId: strin
                     if (s.error) { setErr(s.error.message); return; }
                     window.open(s.data.signedUrl, "_blank");
                   }}
-                  style={{ fontSize: 13 }}
-                >
+                  style={{ fontSize: 13  }} />
                   Download (signed)
                 </a>
               </div>
