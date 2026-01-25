@@ -30,3 +30,4 @@ export default async function AppHomePage() {
     </div>
   );
 }
+
