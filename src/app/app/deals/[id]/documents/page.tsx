@@ -1,26 +1,24 @@
 import { supabaseServer } from "@/lib/supabase/server";
-import DocumentsClient from "./ui";
+import DocumentsUI from "./ui";
 
-type Params = { id: string };
+type DocRow = {
+  id: string;
+  storage_path: string;
+  file_name: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  created_at: string;
+};
 
-export default async function DealDocumentsPage({ params }: { params: Promise<Params> }) {
+export default async function DealDocumentsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await supabaseServer();
 
-  const ent = await supabase.rpc("get_entitlements");
-  const tenantId = (ent.data?.[0]?.tenant_id as string | null) ?? null;
-
   const docs = await supabase
     .from("documents")
-    .select("id, storage_path, file_name, mime_type, size_bytes, created_at")
+    .select("id,storage_path,file_name,mime_type,size_bytes,created_at")
     .eq("deal_id", id)
     .order("created_at", { ascending: false });
 
-  return (
-    <DocumentsClient
-      dealId={id}
-      tenantId={tenantId ?? ""}
-      initialDocs={(docs.data ?? []) as any[]}
-    />
-  );
+  return <DocumentsUI dealId={id} initialDocs={(docs.data ?? []) as DocRow[]} />;
 }
