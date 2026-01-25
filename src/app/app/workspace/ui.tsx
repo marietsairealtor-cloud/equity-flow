@@ -35,7 +35,7 @@ const UI = {
   },
 };
 
-export default function WorkspaceUI(props: { workspaces: Ws[] }) {
+export default function WorkspaceUI(props: { workspaces: Ws[]; serverError?: string | null }) {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
 
@@ -64,7 +64,7 @@ export default function WorkspaceUI(props: { workspaces: Ws[] }) {
         <a href="/app/home" style={{ fontSize: 13, color: "#9cc9ff", textDecoration: "none" }}>Home</a>
       </div>
 
-      {err ? <div style={UI.err}>{err}</div> : null}
+      {props.serverError ? <div style={UI.err}>SERVER: {props.serverError}</div> : null}{err ? <div style={UI.err}>{err}</div> : null}
 
       <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
         {!props.workspaces?.length ? (
@@ -76,7 +76,7 @@ export default function WorkspaceUI(props: { workspaces: Ws[] }) {
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{w.workspace_name ?? w.tenant_id}</div>
                   <div style={UI.subtle}>
-                    {w.role} • {w.tier} • {w.status} {w.trial_ends_at ? `• trial ends ${w.trial_ends_at}` : ""}
+                    {w.role} â€¢ {w.tier} â€¢ {w.status} {w.trial_ends_at ? `â€¢ trial ends ${w.trial_ends_at}` : ""}
                   </div>
                 </div>
                 <button style={UI.btn} disabled={busy === w.tenant_id} onClick={() => selectWs(w.tenant_id)}>

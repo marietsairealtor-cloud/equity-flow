@@ -1,6 +1,9 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import WorkspaceUI from "./ui";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type Ws = {
   tenant_id: string;
   workspace_name: string | null;
@@ -13,9 +16,16 @@ type Ws = {
 export default async function WorkspacePage() {
   const supabase = await supabaseServer();
 
-  // list all workspaces (does not rely on current_tenant_id)
-  const w = await supabase.rpc("get_my_workspaces");
-  const workspaces = (w.data ?? []) as Ws[];
+  // force dynamic + confirm session exists
+  const me = await supabase.auth.getUser();
 
-  return <WorkspaceUI workspaces={workspaces} />;
+  const w = await supabase.rpc("get_my_workspaces");
+
+  const workspaces = (w.data ?? []) as Ws[];
+  const serverError =
+    me.error?.message ??
+    w.error?.message ??
+    null;
+
+  return <WorkspaceUI workspaces={workspaces} serverError={serverError} />;
 }
