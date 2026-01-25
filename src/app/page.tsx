@@ -1,23 +1,13 @@
-"use client";
+import Link from "next/link";
 
-import { useEffect, useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase/client";
-
-export default function Page() {
-  const [status, setStatus] = useState("checking...");
-
-  useEffect(() => {
-    (async () => {
-      const supabase = supabaseBrowser();
-      const { data, error } = await supabase.from("tenants").select("id").limit(1);
-      setStatus(error ? `error: ${error.message}` : `ok: ${data?.length ?? 0} row(s)`);
-    })();
-  }, []);
-
+export default function HomePage() {
   return (
-    <main style={{ padding: 24 }}>
+    <div style={{ padding: 24 }}>
       <h1>Equity Flow</h1>
-      <p>Supabase test: {status}</p>
-    </main>
+      <div style={{ marginTop: 12, display: "flex", gap: 12 }}>
+        <Link href="/login">Login</Link>
+        <Link href="/app/gate">Open App</Link>
+      </div>
+    </div>
   );
 }

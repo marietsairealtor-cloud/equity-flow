@@ -1,70 +1,55 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 
-type Item = {
-  tenant_id: string;
-  workspace_name?: string | null;
-  role: string;
-};
+export default function WorkspacePicker({ workspaces }: { workspaces: any[] }) {
+  const [isPending, startTransition] = useTransition();
 
-export default function WorkspacePicker({ items }: { items?: Item[] }) {
-  const [busy, setBusy] = useState(false);
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  const safeItems = Array.isArray(items) ? items : [];
-
-  // Deduplicate by tenant_id (prevents React key collisions)
-  const seen = new Set<string>();
-  const deduped = safeItems.filter((m) => {
-    if (!m?.tenant_id) return false;
-    if (seen.has(m.tenant_id)) return false;
-    seen.add(m.tenant_id);
-    return true;
-  });
-
-  async function selectTenant(tenantId: string) {
-    setBusy(true);
-    try {
-      await fetch("/api/current-tenant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tenant_id: tenantId }),
-      });
-      location.reload();
-    } finally {
-      setBusy(false);
-    }
+  async function selectTenant(tenant_id: string) {
+    startTransition(async () => {
+      const { error } = await supabase.rpc("set_current_tenant", { p_tenant_id: tenant_id });
+      if (error) {
+        alert(error.message);
+        return;
+      }
+      window.location.href = "/app/gate";
+    });
   }
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
-      <div style={{ fontWeight: 900, fontSize: 18 }}>Workspace</div>
-
-      {!deduped.length ? (
-        <div>No workspaces.</div>
-      ) : (
-        <ul style={{ display: "grid", gap: 8, margin: 0, paddingLeft: 18 }}>
-          {deduped.map((m) => (
-            <li key={`${m.tenant_id}-${m.role}`}>
-              <button disabled={busy} onClick={() => selectTenant(m.tenant_id)}>
-                Select
-              </button>{" "}
-              <span style={{ fontFamily: "monospace" }}>
-                {(m.workspace_name ?? "Workspace") + " (" + m.role + ")"} — {m.tenant_id}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12, display: "grid", gap: 8 }}>
-        <div style={{ fontWeight: 800 }}>Workspace tools</div>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a href="/app/invites">Invites</a>
-          <a href="/app/invite">Accept Invite</a>
-          <a href="/app/members">Members</a>
-        </div>
-      </div>
+      {workspaces.map((w: any) => (
+        <button
+          key={w.tenant_id}
+          onClick={() => selectTenant(w.tenant_id)}
+          disabled={isPending}
+          style={{
+            textAlign: "left",
+            padding: 14,
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(255,255,255,0.06)",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          <div style={{ fontWeight: 700, fontSize: 16 }}>{w.workspace_name}</div>
+          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>
+            role: {w.role} • tier: {w.tier} • status: {w.status}
+          </div>
+          {w.trial_ends_at ? (
+            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>
+              trial ends: {String(w.trial_ends_at)}
+            </div>
+          ) : null}
+        </button>
+      ))}
     </div>
   );
 }

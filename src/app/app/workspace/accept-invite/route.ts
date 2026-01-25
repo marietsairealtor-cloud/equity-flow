@@ -3,12 +3,10 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
   const form = await req.formData();
-  const tenant_id = String(form.get("tenant_id") ?? "");
+  const invite_id = String(form.get("invite_id") ?? "");
 
   const supabase = await supabaseServer();
-
-  // set_current_tenant signature is typically set_current_tenant(p_tenant_id uuid)
-  const { error } = await supabase.rpc("set_current_tenant", { p_tenant_id: tenant_id });
+  const { error } = await supabase.rpc("accept_invite_by_id_rpc", { invite_id });
 
   if (error) {
     return NextResponse.redirect(

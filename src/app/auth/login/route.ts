@@ -1,19 +1,38 @@
-﻿import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-export async function POST(request: Request) {
-  const { email, password } = await request.json();
+export async function POST(req: NextRequest) {
+  const form = await req.formData();
+  const email = String(form.get("email") ?? "");
+  const password = String(form.get("password") ?? "");
 
-  const supabase = await supabaseServer();
+  const res = NextResponse.redirect(new URL("/app/gate", req.url), { status: 303 });
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 401 });
+    return NextResponse.redirect(
+      new URL(`/login?err=${encodeURIComponent(error.message)}`, req.url),
+      { status: 303 }
+    );
   }
 
-  return NextResponse.json({ ok: true });
+  return res;
 }

@@ -1,41 +1,67 @@
+import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
-import StatusClient from "./StatusClient";
 
-export default async function DealDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function DealDetailPage({ params, searchParams }: any) {
   const supabase = await supabaseServer();
 
-  const d = await supabase.from("deals").select("id,status,created_at").eq("id", id).single();
+  const deal_id = String(params?.id ?? "");
+  if (!deal_id) redirect("/app/deals?err=MISSING_DEAL_ID");
 
-  if (d.error) {
-    return <div style={{ padding: 16, color: "#eee" }}>Error: {d.error.message}</div>;
+  const { data, error } = await supabase.rpc("get_deal", { deal_id });
+  const deal = Array.isArray(data) ? data[0] : null;
+
+  const err = String(searchParams?.err ?? "");
+
+  if (error) {
+    return (
+      <div style={{ padding: 16 }}>
+        <h1>Deal</h1>
+        <div style={{ color: "crimson" }}>Error: {error.message}</div>
+        <div style={{ marginTop: 12 }}><a href="/app/deals">Back</a></div>
+      </div>
+    );
+  }
+
+  if (!deal) {
+    return (
+      <div style={{ padding: 16 }}>
+        <h1>Deal</h1>
+        <div>Not found.</div>
+        <div style={{ marginTop: 12 }}><a href="/app/deals">Back</a></div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ padding: 16, color: "#eee", display: "grid", gap: 12, maxWidth: 900 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>Deal</div>
-        <a href="/app/deals" style={{ fontSize: 13, color: "#9cc9ff", textDecoration: "none" }}>
-          Back
-        </a>
-      </div>
+    <div style={{ padding: 16 }}>
+      <h1>Deal</h1>
 
-      <div style={{ padding: "12px 12px", borderRadius: 12, border: "1px solid #2a2a2a", background: "#0f0f0f" }}>
-        <div style={{ fontSize: 13, color: "#bbb" }}>id</div>
-        <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{d.data.id}</div>
+      {err && <div style={{ color: "crimson", marginBottom: 12 }}>Error: {err}</div>}
 
-        <div style={{ marginTop: 12 }}>
-          <StatusClient dealId={d.data.id} status={d.data.status} />
-        </div>
+      <div><b>ID:</b> {deal.id}</div>
+      <div><b>Status:</b> {String(deal.status)}</div>
+      <div><b>Market area:</b> {String(deal.market_area)}</div>
+      <div><b>Row version:</b> {String(deal.row_version)}</div>
 
-        <div style={{ marginTop: 12 }}>
-          <a
-            href={`/app/deals/${d.data.id}/documents`}
-            style={{ fontSize: 13, color: "#9cc9ff", textDecoration: "none" }}
-          >
-            Documents
-          </a>
-        </div>
+      <hr style={{ margin: "16px 0" }} />
+
+      <h2>Update status</h2>
+      <form method="post" action={`/app/deals/${deal.id}/status`}>
+        <input type="hidden" name="p_expected_row_version" value={deal.row_version} />
+        <select name="status" defaultValue={String(deal.status)}>
+          <option value="New">New</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Appointment Set">Appointment Set</option>
+          <option value="Offer Made">Offer Made</option>
+          <option value="Under Contract">Under Contract</option>
+          <option value="Closed/Assigned">Closed/Assigned</option>
+          <option value="Dead">Dead</option>
+        </select>
+        <button type="submit" style={{ marginLeft: 8 }}>Save</button>
+      </form>
+
+      <div style={{ marginTop: 16 }}>
+        <a href="/app/deals">Back to deals</a>
       </div>
     </div>
   );

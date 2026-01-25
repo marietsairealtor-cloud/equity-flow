@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 supabase/.temp/
 
+supabase/pending_migrations/
+WEEK2_WORKING_SET_REPORT.md

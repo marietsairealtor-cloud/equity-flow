@@ -1,18 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  const { id } = await ctx.params;
+export async function POST(req: Request, ctx: any) {
+  const deal_id = String(ctx?.params?.id ?? "");
+  const form = await req.formData();
+
+  const status = String(form.get("status") ?? "");
+  const p_expected_row_version = Number(form.get("expected_row_version") ?? 0);
+
   const supabase = await supabaseServer();
+  const p_idempotency_key = crypto.randomUUID();
 
-  let body: any = null;
-  try { body = await req.json(); } catch { return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 }); }
+  const { error } = await supabase.rpc("update_deal_rpc", {
+    p_payload: { id: deal_id, status },
+    p_expected_row_version,
+    p_idempotency_key,
+  });
 
-  const status = String(body?.status ?? "");
-  if (!status) return NextResponse.json({ error: "STATUS_REQUIRED" }, { status: 400 });
+  if (error) {
+    return NextResponse.redirect(
+      new URL(`/app/deals/${deal_id}?err=${encodeURIComponent(error.message)}`, req.url),
+      { status: 303 }
+    );
+  }
 
-  const u = await supabase.from("deals").update({ status }).eq("id", id).select("id").single();
-  if (u.error) return NextResponse.json({ error: u.error.message }, { status: 400 });
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.redirect(new URL(`/app/deals/${deal_id}`, req.url), { status: 303 });
 }

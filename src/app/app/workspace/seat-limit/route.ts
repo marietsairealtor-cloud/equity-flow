@@ -3,12 +3,10 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
   const form = await req.formData();
-  const tenant_id = String(form.get("tenant_id") ?? "");
+  const seat_limit = Number(form.get("seat_limit") ?? 0);
 
   const supabase = await supabaseServer();
-
-  // set_current_tenant signature is typically set_current_tenant(p_tenant_id uuid)
-  const { error } = await supabase.rpc("set_current_tenant", { p_tenant_id: tenant_id });
+  const { error } = await supabase.rpc("owner_set_seat_limit", { p_seat_limit: seat_limit });
 
   if (error) {
     return NextResponse.redirect(
@@ -17,5 +15,5 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.redirect(new URL("/app/gate", req.url), { status: 303 });
+  return NextResponse.redirect(new URL("/app/invites", req.url), { status: 303 });
 }

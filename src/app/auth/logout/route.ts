@@ -1,8 +1,34 @@
-﻿import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-export async function POST() {
-  const supabase = await supabaseServer();
+async function doLogout(req: NextRequest) {
+  const res = NextResponse.redirect(new URL("/login", req.url), { status: 303 });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
   await supabase.auth.signOut();
-  return NextResponse.json({ ok: true });
+  return res;
+}
+
+export async function POST(req: NextRequest) {
+  return doLogout(req);
+}
+
+export async function GET(req: NextRequest) {
+  return doLogout(req);
 }
