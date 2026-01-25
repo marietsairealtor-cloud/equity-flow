@@ -1,19 +1,21 @@
-import WorkspacePicker from "./WorkspacePicker";
-import CreateWorkspaceForm from "./CreateWorkspaceForm";
-import LogoutButton from "../LogoutButton";
+import { supabaseServer } from "@/lib/supabase/server";
+import WorkspaceUI from "./ui";
 
-export default function WorkspacePage() {
-  return (
-    <main>
-      <h1>Workspace</h1>
+type Ws = {
+  tenant_id: string;
+  workspace_name: string | null;
+  role: string;
+  tier: string;
+  status: string;
+  trial_ends_at: string | null;
+};
 
-      <h2>Your memberships</h2>
-      <WorkspacePicker />
+export default async function WorkspacePage() {
+  const supabase = await supabaseServer();
 
-      <h2>Create new</h2>
-      <CreateWorkspaceForm />
+  // list all workspaces (does not rely on current_tenant_id)
+  const w = await supabase.rpc("get_my_workspaces");
+  const workspaces = (w.data ?? []) as Ws[];
 
-      <LogoutButton />
-    </main>
-  );
+  return <WorkspaceUI workspaces={workspaces} />;
 }
