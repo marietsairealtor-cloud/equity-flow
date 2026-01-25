@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 type DocRow = {
   id: string;
@@ -12,7 +12,7 @@ type DocRow = {
   created_at: string;
 };
 
-const supabase = createClient(
+const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -87,7 +87,6 @@ export default function DocumentsUI(props: {
 
     setBusy(true);
     try {
-      // Always re-check tenant on client via SECURITY DEFINER RPC
       const t = await supabase.rpc("get_current_tenant_id");
       const tenantId = (t.data as string | null) ?? props.tenantId;
       if (!tenantId) throw new Error("NO_TENANT_SELECTED");
