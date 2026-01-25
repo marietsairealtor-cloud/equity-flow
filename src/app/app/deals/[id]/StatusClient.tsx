@@ -9,7 +9,6 @@ const OPTIONS: { value: string; label: string }[] = [
   { value: "Appointment Set", label: "Appointment Set" },
   { value: "Offer Made", label: "Offer Made" },
   { value: "Under Contract", label: "Under Contract" },
-  { value: "Closed", label: "Closed" },
   { value: "Closed/Assigned", label: "Closed/Assigned (legacy)" },
   { value: "Dead", label: "Dead" },
 ];
@@ -62,7 +61,7 @@ export default function StatusClient(props: { dealId: string; status: string }) 
           ))}
         </select>
 
-        {busy ? <div style={{ fontSize: 13, color: "#bbb" }}>Savingâ€¦</div> : null}
+        {busy ? <div style={{ fontSize: 13, color: "#bbb" }}>SavingÃ¢â‚¬Â¦</div> : null}
       </div>
 
       {err ? (
