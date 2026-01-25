@@ -41,7 +41,7 @@ as $$
     t.id as tenant_id,
     t.workspace_name,
     tm.role,
-    tm.tier,
+    t.subscription_tier,
     t.subscription_status as status,
     t.trial_ends_at
   from public.tenant_memberships tm
