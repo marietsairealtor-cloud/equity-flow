@@ -1,52 +1,57 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+﻿import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export default async function DealsPage({ searchParams }: any) {
+export const dynamic = "force-dynamic";
+
+export default async function DealsPage({ searchParams }: { searchParams: Promise<any> }) {
+  const sp = await searchParams;
+
   const supabase = await supabaseServer();
-
-  const { data: ents } = await supabase.rpc("get_entitlements");
-  const ent = Array.isArray(ents) ? ents[0] : null;
-
-  if (!ent?.tenant_id) redirect("/app/workspace?err=NO_TENANT_SELECTED");
-
   const { data, error } = await supabase.rpc("list_deals");
-  const deals = Array.isArray(data) ? data : [];
 
-  const err = String(searchParams?.err ?? "");
+  const deals = Array.isArray(data) ? data : [];
+  const err = String(sp?.err ?? "") || (error ? error.message : "");
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Deals</h1>
-        <form method="post" action="/auth/logout"><button type="submit">Logout</button></form>
+    <div style={{ padding: 16, display: "grid", gap: 12 }}>
+      <h1 style={{ margin: 0 }}>Deals</h1>
+
+      {err ? (
+        <div style={{ padding: 10, border: "1px solid #c00", borderRadius: 8, color: "#c00" }}>
+          {err}
+        </div>
+      ) : null}
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <Link
+          href="/app/deals?do=create"
+          style={{ padding: "8px 10px", border: "1px solid #111", borderRadius: 8, textDecoration: "none" }}
+        >
+          Create (legacy)
+        </Link>
+        <Link
+          href="/app/upgrade"
+          style={{ padding: "8px 10px", border: "1px solid #111", borderRadius: 8, textDecoration: "none" }}
+        >
+          Upgrade
+        </Link>
       </div>
 
-      {err && <div style={{ color: "crimson", marginBottom: 12 }}>Error: {err}</div>}
-      {error && <div style={{ color: "crimson", marginBottom: 12 }}>Error: {error.message}</div>}
-
-      <form method="post" action="/app/deals/create" style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <select name="status" defaultValue="New">
-          <option value="New">New</option>
-          <option value="Contacted">Contacted</option>
-          <option value="Appointment Set">Appointment Set</option>
-          <option value="Offer Made">Offer Made</option>
-          <option value="Under Contract">Under Contract</option>
-          <option value="Closed/Assigned">Closed/Assigned</option>
-          <option value="Dead">Dead</option>
-        </select>
-        <input name="market_area" placeholder="market area" defaultValue="default" />
-        <button type="submit">Create</button>
-      </form>
-
-      <ul style={{ padding: 0, listStyle: "none" }}>
+      <div style={{ display: "grid", gap: 8 }}>
         {deals.map((d: any) => (
-          <li key={d.id} style={{ padding: 8, borderTop: "1px solid #eee" }}>
-            <Link href={`/app/deals/${d.id}`}>{d.id}</Link>
-            {" "} | {String(d.status)} | v{String(d.row_version)}
-          </li>
+          <Link
+            key={d.id}
+            href={`/app/deals/${d.id}`}
+            style={{ padding: 10, border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+          >
+            <div style={{ fontWeight: 600 }}>{d.id}</div>
+            <div style={{ fontSize: 12, color: "#555" }}>
+              status: {String(d.status)} | row_version: {String(d.row_version)}
+            </div>
+          </Link>
         ))}
-      </ul>
+        {deals.length === 0 ? <div style={{ color: "#555" }}>No deals yet.</div> : null}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
@@ -121,7 +121,7 @@ export default function AcceptInviteClient() {
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button
             onClick={accept}
-            disabled={isPending || (preview?.status && preview.status !== "open")}
+            disabled={isPending || (Boolean(preview?.status) && preview!.status !== "open")}
             style={{
               padding: "12px 14px",
               borderRadius: 10,
