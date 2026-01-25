@@ -70,12 +70,11 @@ export default function DocumentsClient(props: { dealId: string; tenantId: strin
       </div>
 
       <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
-        <input type="file" onChange={onUpload} disabled={busy} />
+        <input type="file" onChange={onUpload} disabled={busy} / style={{ color: "#eee", background: "#121212", border: "1px solid #3a3a3a", borderRadius: 10, padding: "8px 10px" }}>
         {busy ? <div style={{ fontSize: 13 }}>Uploading...</div> : null}
       </div>
 
-      {err ? (
-        <div style={{ marginTop: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid #f0c2c2", background: "#fff7f7", fontSize: 12, whiteSpace: "pre-wrap" }}>
+      {err ? ( <div style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #7a2a2a", background: "#1a0f0f", color: "#ffd0d0", fontSize: 12, whiteSpace: "pre-wrap" }}>
           {err}
         </div>
       ) : null}
@@ -88,7 +87,7 @@ export default function DocumentsClient(props: { dealId: string; tenantId: strin
             <div key={d.id} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #eee" }}>
               <div style={{ fontWeight: 700, fontSize: 13 }}>{d.file_name ?? d.storage_path.split("/").slice(-1)[0]}</div>
               <div style={{ fontSize: 12, color: "#444" }}>
-                {d.mime_type ?? "-"} • {d.size_bytes ?? 0} bytes • {d.created_at}
+                {d.mime_type ?? "-"} â€¢ {d.size_bytes ?? 0} bytes â€¢ {d.created_at}
               </div>
               <div style={{ marginTop: 6 }}>
                 <a
