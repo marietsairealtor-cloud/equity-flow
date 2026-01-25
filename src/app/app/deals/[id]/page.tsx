@@ -1,40 +1,37 @@
-import { supabaseServer } from "@/lib/supabase-server";
-import StatusButtons from "./StatusButtons";
+import { supabaseServer } from ""@/lib/supabase/server"";
+import StatusClient from ""./StatusClient"";
 
-export const dynamic = "force-dynamic";
-
-export default async function DealPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function DealDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-
   const supabase = await supabaseServer();
 
-  const { data: deal, error } = await supabase
-    .from("deals")
-    .select("id,status,created_at")
-    .eq("id", id)
-    .single();
+  const d = await supabase.from(""deals"").select(""id,status,created_at"").eq(""id"", id).single();
+
+  if (d.error) {
+    return <div style={{ padding: 16, color: ""#eee"" }}>Error: {d.error.message}</div>;
+  }
 
   return (
-    <main>
-      <h1>Deal</h1>
+    <div style={{ padding: 16, color: ""#eee"", display: ""grid"", gap: 12, maxWidth: 900 }}>
+      <div style={{ display: ""flex"", justifyContent: ""space-between"", alignItems: ""center"", gap: 10 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: ""#fff"" }}>Deal</div>
+        <a href=""/app/deals"" style={{ fontSize: 13, color: ""#9cc9ff"", textDecoration: ""none"" }}>Back</a>
+      </div>
 
-      {error && <p style={{ color: "crimson" }}>{error.message}</p>}
+      <div style={{ padding: ""12px 12px"", borderRadius: 12, border: ""1px solid #2a2a2a"", background: ""#0f0f0f"" }}>
+        <div style={{ fontSize: 13, color: ""#bbb"" }}>id</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: ""#fff"" }}>{d.data.id}</div>
 
-      {deal && (
-        <>
-          <ul>
-            <li>id: {deal.id}</li>
-            <li>status: {deal.status}</li>
-            <li>created_at: {deal.created_at}</li>
-          </ul>
+        <div style={{ marginTop: 12 }}>
+          <StatusClient dealId={d.data.id} status={d.data.status} />
+        </div>
 
-          <StatusButtons id={deal.id} />
-        </>
-      )}
-
-      <p>
-        <a href="/app/deals">Back to deals</a>
-      </p>
-    </main>
+        <div style={{ marginTop: 12 }}>
+          <a href={/app/deals//documents} style={{ fontSize: 13, color: ""#9cc9ff"", textDecoration: ""none"" }}>
+            Documents
+          </a>
+        </div>
+      </div>
+    </div>
   );
 }
