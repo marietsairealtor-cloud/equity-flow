@@ -11,6 +11,49 @@ type InviteRow = {
   created_at: string;
 };
 
+const UI = {
+  page: { padding: 16, maxWidth: 900, color: "#eee" as const },
+  card: { padding: "12px 12px", borderRadius: 12, border: "1px solid #2a2a2a", background: "#0f0f0f" as const },
+  subtle: { fontSize: 13, color: "#bbb" as const },
+  h1: { fontSize: 20, fontWeight: 800, color: "#fff" as const },
+  label: { fontSize: 13, fontWeight: 700, color: "#fff" as const },
+
+  input: {
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "1px solid #3a3a3a",
+    background: "#121212",
+    color: "#eee",
+    minWidth: 260,
+  } as const,
+
+  select: {
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "1px solid #3a3a3a",
+    background: "#121212",
+    color: "#eee",
+  } as const,
+
+  btn: {
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "1px solid #3a3a3a",
+    background: "#1a1a1a",
+    color: "#eee",
+  } as const,
+
+  btnSmall: {
+    padding: "8px 10px",
+    borderRadius: 10,
+    border: "1px solid #3a3a3a",
+    background: "#1a1a1a",
+    color: "#eee",
+  } as const,
+
+  link: { fontSize: 13, color: "#9cc9ff" as const, textDecoration: "none" as const },
+};
+
 export default function InvitesClient(props: {
   tenantId: string;
   workspaceName: string;
@@ -52,7 +95,6 @@ export default function InvitesClient(props: {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error || "SET_SEAT_LIMIT_FAILED");
-      // hard refresh to get updated seat counts/limits from server render
       window.location.reload();
     } catch (e: any) {
       setErr(e?.message ?? "SET_SEAT_LIMIT_FAILED");
@@ -62,8 +104,14 @@ export default function InvitesClient(props: {
 
   async function createInvite() {
     setErr("");
-    if (!email.trim()) { setErr("EMAIL_REQUIRED"); return; }
-    if (full) { setErr("SEAT_LIMIT_REACHED"); return; }
+    if (!email.trim()) {
+      setErr("EMAIL_REQUIRED");
+      return;
+    }
+    if (full) {
+      setErr("SEAT_LIMIT_REACHED");
+      return;
+    }
 
     setBusy(true);
     try {
@@ -104,73 +152,68 @@ export default function InvitesClient(props: {
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 900 }}>
+    <div style={UI.page}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>Invites</div>
-          <div style={{ fontSize: 13, color: "#444" }}>
-            Workspace: <b>{props.workspaceName || "-"}</b> • Seats: <b>{props.seatCount}/{props.seatLimit}</b>
-            {full ? <span style={{ marginLeft: 8 }}>• <b>FULL</b></span> : null}
+          <div style={UI.h1}>Invites</div>
+          <div style={UI.subtle}>
+            Workspace: <b style={{ color: "#fff" }}>{props.workspaceName || "-"}</b> • Seats:{" "}
+            <b style={{ color: "#fff" }}>{props.seatCount}/{props.seatLimit}</b>
+            {full ? <span style={{ marginLeft: 8 }}>• <b style={{ color: "#fff" }}>FULL</b></span> : null}
           </div>
         </div>
-        <a href="/app/workspace" style={{ fontSize: 13, color: "#444" }}>Back to Workspace</a>
+        <a href="/app/workspace" style={UI.link}>Back to Workspace</a>
       </div>
 
       {isAdmin ? (
         <div style={{ marginTop: 10, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ fontSize: 13, color: "#444" }}>Seat limit controls:</div>
-          <button
-            disabled={busy}
-            onClick={() => setSeatLimit(props.seatCount)}
-            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white" }}
-          >
+          <div style={UI.subtle}>Seat limit controls:</div>
+          <button disabled={busy} onClick={() => setSeatLimit(props.seatCount)} style={UI.btnSmall}>
             Set limit = count (simulate FULL)
           </button>
-          <button
-            disabled={busy}
-            onClick={() => setSeatLimit(100)}
-            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white" }}
-          >
+          <button disabled={busy} onClick={() => setSeatLimit(100)} style={UI.btnSmall}>
             Set limit = 100
           </button>
         </div>
       ) : null}
 
-      <div style={{ marginTop: 14, padding: "12px 12px", borderRadius: 12, border: "1px solid #eee" }}>
-        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Create invite</div>
+      <div style={{ marginTop: 14, ...UI.card }}>
+        <div style={{ ...UI.label, marginBottom: 8 }}>Create invite</div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="email@domain.com"
-            style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd", minWidth: 260 }}
+            style={UI.input}
             disabled={busy || full}
           />
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-            disabled={busy || full}
-          >
+          <select value={role} onChange={(e) => setRole(e.target.value)} style={UI.select} disabled={busy || full}>
             <option value="member">member</option>
             <option value="admin">admin</option>
           </select>
-          <button
-            onClick={createInvite}
-            disabled={busy || full}
-            style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd", background: "white" }}
-          >
-            {busy ? "Working..." : (full ? "Seat limit reached" : "Create")}
+          <button onClick={createInvite} disabled={busy || full} style={UI.btn}>
+            {busy ? "Working..." : full ? "Seat limit reached" : "Create"}
           </button>
 
-          <label style={{ fontSize: 13, color: "#444", display: "flex", alignItems: "center", gap: 6 }}>
+          <label style={{ ...UI.subtle, display: "flex", alignItems: "center", gap: 6 }}>
             <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
             show all
           </label>
         </div>
 
         {err ? (
-          <div style={{ marginTop: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid #f0c2c2", background: "#fff7f7", fontSize: 12, whiteSpace: "pre-wrap" }}>
+          <div
+            style={{
+              marginTop: 10,
+              padding: "10px 12px",
+              borderRadius: 10,
+              border: "1px solid #7a2a2a",
+              background: "#1a0f0f",
+              fontSize: 12,
+              whiteSpace: "pre-wrap",
+              color: "#ffd0d0",
+            }}
+          >
             {err}
           </div>
         ) : null}
@@ -178,22 +221,19 @@ export default function InvitesClient(props: {
 
       <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
         {visibleInvites.length === 0 ? (
-          <div style={{ fontSize: 13, color: "#444" }}>No invites.</div>
+          <div style={UI.subtle}>No invites.</div>
         ) : (
           visibleInvites.map((i) => (
-            <div key={i.id} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #eee" }}>
+            <div key={i.id} style={UI.card}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 800 }}>{i.email}</div>
-                  <div style={{ fontSize: 12, color: "#444" }}>
-                    role: <b>{i.role}</b> • status: <b>{i.status}</b> • {i.created_at}
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{i.email}</div>
+                  <div style={{ fontSize: 12, color: "#bbb" }}>
+                    role: <b style={{ color: "#fff" }}>{i.role}</b> • status:{" "}
+                    <b style={{ color: "#fff" }}>{i.status}</b> • {i.created_at}
                   </div>
                 </div>
-                <button
-                  onClick={() => revokeInvite(i.id)}
-                  disabled={busy || i.status !== "open"}
-                  style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white" }}
-                >
+                <button onClick={() => revokeInvite(i.id)} disabled={busy || i.status !== "open"} style={UI.btnSmall}>
                   Revoke
                 </button>
               </div>
