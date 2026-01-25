@@ -22,8 +22,9 @@ export default async function GatePage() {
 
   if (ent.status === "locked") redirect("/app/locked");
   if (ent.status === "past_due" || ent.status === "canceled") redirect("/app/billing");
-  if (ent.status === "pending") redirect("/app/upgrade");
+  if (ent.status === "pending") redirect("/app/billing");
   if (ent.status === "trialing" || ent.status === "active") redirect("/app/home");
 
   redirect("/app/billing");
 }
+
