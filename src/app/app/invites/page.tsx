@@ -16,6 +16,7 @@ export default async function InvitesPage() {
   const ent = await supabase.rpc("get_entitlements");
   const tenantId = (ent.data?.[0]?.tenant_id as string | null) ?? null;
   const workspaceName = (ent.data?.[0]?.workspace_name as string | null) ?? "";
+  const myRole = (ent.data?.[0]?.role as string | null) ?? "member";
 
   if (!tenantId) {
     return (
@@ -41,6 +42,7 @@ export default async function InvitesPage() {
     <InvitesClient
       tenantId={tenantId}
       workspaceName={workspaceName ?? ""}
+      myRole={myRole}
       seatLimit={seatLimit}
       seatCount={seatCount}
       initialInvites={(inv.data ?? []) as any[]}

@@ -14,6 +14,7 @@ type InviteRow = {
 export default function InvitesClient(props: {
   tenantId: string;
   workspaceName: string;
+  myRole: string;
   seatLimit: number;
   seatCount: number;
   initialInvites: InviteRow[];
@@ -25,6 +26,7 @@ export default function InvitesClient(props: {
   const [invites, setInvites] = useState<InviteRow[]>(props.initialInvites ?? []);
   const [showAll, setShowAll] = useState(false);
 
+  const isAdmin = props.myRole === "owner" || props.myRole === "admin";
   const full = props.seatLimit > 0 && props.seatCount >= props.seatLimit;
 
   const visibleInvites = useMemo(() => {
@@ -37,6 +39,25 @@ export default function InvitesClient(props: {
     if (!res.ok) return;
     const j = await res.json();
     if (Array.isArray(j?.invites)) setInvites(j.invites);
+  }
+
+  async function setSeatLimit(n: number) {
+    setErr("");
+    setBusy(true);
+    try {
+      const res = await fetch("/api/seats/set-limit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seat_limit: n }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j?.error || "SET_SEAT_LIMIT_FAILED");
+      // hard refresh to get updated seat counts/limits from server render
+      window.location.reload();
+    } catch (e: any) {
+      setErr(e?.message ?? "SET_SEAT_LIMIT_FAILED");
+      setBusy(false);
+    }
   }
 
   async function createInvite() {
@@ -55,6 +76,7 @@ export default function InvitesClient(props: {
       if (!res.ok) throw new Error(j?.error || "CREATE_INVITE_FAILED");
       setEmail("");
       await refresh();
+      window.location.reload();
     } catch (e: any) {
       setErr(e?.message ?? "CREATE_INVITE_FAILED");
     } finally {
@@ -93,6 +115,26 @@ export default function InvitesClient(props: {
         </div>
         <a href="/app/workspace" style={{ fontSize: 13, color: "#444" }}>Back to Workspace</a>
       </div>
+
+      {isAdmin ? (
+        <div style={{ marginTop: 10, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ fontSize: 13, color: "#444" }}>Seat limit controls:</div>
+          <button
+            disabled={busy}
+            onClick={() => setSeatLimit(props.seatCount)}
+            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white" }}
+          >
+            Set limit = count (simulate FULL)
+          </button>
+          <button
+            disabled={busy}
+            onClick={() => setSeatLimit(100)}
+            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white" }}
+          >
+            Set limit = 100
+          </button>
+        </div>
+      ) : null}
 
       <div style={{ marginTop: 14, padding: "12px 12px", borderRadius: 12, border: "1px solid #eee" }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Create invite</div>
