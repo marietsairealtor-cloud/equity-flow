@@ -62,7 +62,7 @@ export default function StatusClient(props: { dealId: string; status: string }) 
           ))}
         </select>
 
-        {busy ? <div style={{ fontSize: 13, color: "#bbb" }}>Saving…</div> : null}
+        {busy ? <div style={{ fontSize: 13, color: "#bbb" }}>Savingâ€¦</div> : null}
       </div>
 
       {err ? (
