@@ -1,13 +1,11 @@
 ﻿"use client";
 
 import * as React from "react";
-import { useFormState, useFormStatus } from "react-dom";
 import { upgradeAndSave } from "./actions";
 
 const initialState = { ok: false, error: "" };
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -26,7 +24,7 @@ function SubmitButton() {
 }
 
 export default function UpgradeForm(props: { defaultWorkspaceName?: string; status?: string }) {
-  const [state, formAction] = useFormState(upgradeAndSave as any, initialState as any);
+  const [state, formAction, pending] = React.useActionState(upgradeAndSave as any, initialState as any);
 
   return (
     <div style={{ maxWidth: 720, padding: 16 }}>
@@ -80,10 +78,11 @@ export default function UpgradeForm(props: { defaultWorkspaceName?: string; stat
         ) : null}
 
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <SubmitButton />
+          <SubmitButton pending={pending} />
           <a href="/app/billing" style={{ fontSize: 13, color: "#444" }}>Back to Billing</a>
         </div>
       </form>
     </div>
   );
 }
+
