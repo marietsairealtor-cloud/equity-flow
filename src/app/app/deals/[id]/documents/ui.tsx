@@ -61,7 +61,11 @@ function prettyBytes(n?: number | null) {
   return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
-export default function DocumentsUI(props: { dealId: string; initialDocs: DocRow[] }) {
+export default function DocumentsUI(props: {
+  tenantId: string | null;
+  dealId: string;
+  initialDocs: DocRow[];
+}) {
   const [docs, setDocs] = useState<DocRow[]>(props.initialDocs ?? []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -86,14 +90,10 @@ export default function DocumentsUI(props: { dealId: string; initialDocs: DocRow
 
     setBusy(true);
     try {
-      const ent = await supabase.rpc("get_entitlements");
-      if (ent.error) throw new Error(ent.error.message);
-
-      const tenantId = (ent.data?.[0]?.tenant_id as string | null) ?? null;
-      if (!tenantId) throw new Error("NO_TENANT_SELECTED");
+      if (!props.tenantId) throw new Error("NO_TENANT_SELECTED");
 
       const safeName = file.name.replace(/[^\w.\-]+/g, "_");
-      const storage_path = `${tenantId}/${props.dealId}/${Date.now()}_${safeName}`;
+      const storage_path = `${props.tenantId}/${props.dealId}/${Date.now()}_${safeName}`;
 
       const up = await supabase.storage.from("deal-files").upload(storage_path, file, {
         upsert: false,
@@ -163,12 +163,7 @@ export default function DocumentsUI(props: { dealId: string; initialDocs: DocRow
                     {prettyBytes(d.size_bytes)} • {d.mime_type ?? "-"} • {d.created_at}
                   </div>
                 </div>
-                <button
-                  style={UI.btn}
-                  onClick={() => downloadSigned(d.storage_path)}
-                  disabled={busy}
-                  title="Signed URL (60s)"
-                >
+                <button style={UI.btn} onClick={() => downloadSigned(d.storage_path)} disabled={busy}>
                   Download
                 </button>
               </div>
