@@ -137,6 +137,7 @@ $dbSet  = [bool]$env:DATABASE_URL
 $tokSet = [bool]$env:SUPABASE_ACCESS_TOKEN
 $listen = Has-Listener3001
 
+$localDbReady = $false
 # ---- Probes (best-effort, never fatal)
 $sbStatusObj = RunCmd "npx supabase status"
 $sbStatus = "exit code: {0}`r`n{1}" -f $sbStatusObj.ExitCode, $sbStatusObj.Output
@@ -168,6 +169,7 @@ $text += "next: $nextV`r`n`r`n"
 $text += "Env flags present (no secrets printed):`r`n"
 $text += "DATABASE_URL set: $dbSet`r`n"
 $text += "SUPABASE_ACCESS_TOKEN set: $tokSet`r`n`r`n"
+$text += "Supabase local ready: $localDbReady`r`n`r`n"
 $text += "Port 3001 usage:`r`n"
 $text += "Listener on 3001: $listen`r`n`r`n"
 
