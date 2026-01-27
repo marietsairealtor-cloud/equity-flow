@@ -11,7 +11,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth, extensions
-as $$
+as $20260126093952_free_trial_core_plan_actions$
 declare
   v_uid uuid := auth.uid();
   v_tid uuid := public.current_tenant_id();
@@ -44,7 +44,7 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', v_tid, 'tier', 'free', 'status', 'active');
 end;
-$$;
+$20260126093952_free_trial_core_plan_actions$;
 
 grant execute on function public.set_plan_free_current_tenant_rpc() to authenticated;
 
@@ -53,7 +53,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth, extensions
-as $$
+as $20260126093952_free_trial_core_plan_actions$
 declare
   v_uid uuid := auth.uid();
   v_tid uuid := public.current_tenant_id();
@@ -95,6 +95,6 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', v_tid, 'status', 'trialing', 'tier', 'core');
 end;
-$$;
+$20260126093952_free_trial_core_plan_actions$;
 
 grant execute on function public.start_trial_current_tenant_rpc() to authenticated;

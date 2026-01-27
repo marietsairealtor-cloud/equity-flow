@@ -1,13 +1,13 @@
 -- subscription_tier enum (idempotent)
-do $$
+do $20260124193506_billing_choose_plan_trial$
 begin
   if not exists (select 1 from pg_type where typname = 'subscription_tier') then
     create type public.subscription_tier as enum ('free','core');
   end if;
-end $$;
+end $20260124193506_billing_choose_plan_trial$;
 
 -- tenants.subscription_tier (idempotent)
-do $$
+do $20260124193506_billing_choose_plan_trial$
 begin
   if not exists (
     select 1
@@ -17,7 +17,7 @@ begin
     alter table public.tenants
       add column subscription_tier public.subscription_tier not null default 'free'::public.subscription_tier;
   end if;
-end $$;
+end $20260124193506_billing_choose_plan_trial$;
 
 update public.tenants
 set subscription_tier = coalesce(subscription_tier, 'free'::public.subscription_tier);
@@ -35,7 +35,7 @@ returns table(
 language plpgsql
 security definer
 set search_path = public, extensions, pg_temp
-as $$
+as $20260124193506_billing_choose_plan_trial$
 declare
   v_tenant uuid;
   v_status public.subscription_status;
@@ -78,7 +78,7 @@ begin
     t.seat_count
   from public.tenants t
   where t.id = v_tenant;
-end $$;
+end $20260124193506_billing_choose_plan_trial$;
 
 revoke all on function public.choose_plan_and_start_trial(public.subscription_tier) from public;
 grant execute on function public.choose_plan_and_start_trial(public.subscription_tier) to authenticated;

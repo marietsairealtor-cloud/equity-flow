@@ -7,7 +7,7 @@ returns table(tenant_id uuid, deal_id uuid)
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $20260123133122_002_admin_provision_upgrade_save$
 declare
   v_tenant_id uuid;
   v_deal_id uuid;
@@ -42,7 +42,7 @@ begin
 
   return query select v_tenant_id, v_deal_id;
 end;
-$$;
+$20260123133122_002_admin_provision_upgrade_save$;
 
 revoke all on function public.admin_provision_upgrade_save(uuid, text, jsonb) from public;
 revoke all on function public.admin_provision_upgrade_save(uuid, text, jsonb) from authenticated;

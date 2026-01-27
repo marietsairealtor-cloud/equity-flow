@@ -16,7 +16,7 @@ language sql
 stable
 security definer
 set search_path = public, auth
-as $$
+as $20260125075221_recreate_get_my_workspaces$
   select
     t.id as tenant_id,
     t.workspace_name,
@@ -30,7 +30,7 @@ as $$
   join public.tenants t on t.id = tm.tenant_id
   where tm.user_id = auth.uid()
   order by t.created_at desc;
-$$;
+$20260125075221_recreate_get_my_workspaces$;
 
 revoke all on function public.get_my_workspaces() from public;
 grant execute on function public.get_my_workspaces() to authenticated;

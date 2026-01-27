@@ -1,4 +1,4 @@
-do $$
+do $20260124201457_deal_status_add_qualified_closed$
 begin
   if exists (select 1 from pg_type where typname = 'deal_status') then
 
@@ -21,4 +21,4 @@ begin
     end if;
 
   end if;
-end $$;
+end $20260124201457_deal_status_add_qualified_closed$;

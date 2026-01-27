@@ -6,7 +6,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public, auth
-as $$
+as $20260125080646_fix_delete_workspace_and_reload_pgrst$
 begin
   if auth.uid() is null then
     raise exception 'AUTH_REQUIRED';
@@ -37,7 +37,7 @@ begin
   delete from public.tenant_memberships where tenant_id = p_tenant_id;
   delete from public.tenants where id = p_tenant_id;
 end;
-$$;
+$20260125080646_fix_delete_workspace_and_reload_pgrst$;
 
 revoke all on function public.delete_workspace(uuid) from public;
 grant execute on function public.delete_workspace(uuid) to authenticated;

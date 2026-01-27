@@ -7,7 +7,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public, extensions, pg_temp
-as $$
+as $20260124200711_members_set_role_rpc$
 declare
   v_owner uuid;
 begin
@@ -43,7 +43,7 @@ begin
   if not found then
     raise exception 'NOT_FOUND';
   end if;
-end $$;
+end $20260124200711_members_set_role_rpc$;
 
 revoke all on function public.set_member_role(uuid, uuid, text) from public;
 grant execute on function public.set_member_role(uuid, uuid, text) to authenticated;

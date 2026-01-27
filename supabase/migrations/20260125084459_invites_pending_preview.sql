@@ -19,7 +19,7 @@ language sql
 stable
 security definer
 set search_path = public, auth
-as $$
+as $20260125084459_invites_pending_preview$
   with me as (
     select lower(coalesce(auth.jwt()->>'email','')) as email_lc
   )
@@ -41,7 +41,7 @@ as $$
     and i.accepted_at is null
     and (i.expires_at is null or i.expires_at > now())
   order by i.created_at desc;
-$$;
+$20260125084459_invites_pending_preview$;
 
 revoke all on function public.get_my_pending_invites_rpc() from public;
 grant execute on function public.get_my_pending_invites_rpc() to authenticated;
@@ -65,7 +65,7 @@ language plpgsql
 stable
 security definer
 set search_path = public, auth
-as $$
+as $20260125084459_invites_pending_preview$
 declare
   v_email text := lower(coalesce(auth.jwt()->>'email',''));
 begin
@@ -96,7 +96,7 @@ begin
   where i.token = get_invite_preview_rpc.token
   limit 1;
 end;
-$$;
+$20260125084459_invites_pending_preview$;
 
 revoke all on function public.get_invite_preview_rpc(text) from public;
 grant execute on function public.get_invite_preview_rpc(text) to authenticated;

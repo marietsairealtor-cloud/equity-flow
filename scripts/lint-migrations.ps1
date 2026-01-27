@@ -42,10 +42,15 @@ foreach ($f in $files) {
   # strip BOM char + NULL chars
   $text = $text.Replace(([string][char]0xFEFF), "").Replace(([string][char]0x0000), "")
   $trim = $text.TrimStart()
-
   # NO_DOLLAR_DOLLAR: PowerShell expands $ and corrupts SQL migrations. Use named tags: as $fn$ ... $fn$;
   if ($text -match "(?is)\bas\s+\$\$" -or $text -match "(?is)\$\$\s*;") { $problems.Add("DOLLAR_DOLLAR_FORBIDDEN") }
-  $problems = New-Object System.Collections.Generic.List[string]
+  # NO_DOLLAR_DOLLAR: PowerShell expands $ and corrupts SQL migrations. Use named tags: as $fn$ ... $fn$;
+  if ($text -match "(?is)\bas\s+\$\$" -or $text -match "(?is)\$\$\s*;") { $problems.Add("DOLLAR_DOLLAR_FORBIDDEN") }
+$problems = New-Object System.Collections.Generic.List[string]
+
+  # Guardrails
+  if ($text -match "(?is)pg_notify\s*\(\s*'pgrst'\s*,") { $problems.Add("PGRST_NOTIFY_FORBIDDEN") }
+  if ($text -match "(?is)\bas\s+\$\$" -or $text -match "(?is)\$\$\s*;") { $problems.Add("DOLLAR_DOLLAR_FORBIDDEN") }
   if ($kind -in @("utf16le","utf16be","has_nuls")) { $problems.Add("ENCODING_$kind") }
   if ($kind -eq "utf8bom") { $problems.Add("UTF8_BOM") }
   if ($trim.StartsWith($fence)) { $problems.Add("MARKDOWN_FENCE") }

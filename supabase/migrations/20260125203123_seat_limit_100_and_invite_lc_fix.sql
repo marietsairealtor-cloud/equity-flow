@@ -16,7 +16,7 @@ language plpgsql
 security definer
 volatile
 set search_path = public, auth, extensions
-as $$
+as $20260125203123_seat_limit_100_and_invite_lc_fix$
 declare
   v_token text;
   v_email text;
@@ -60,7 +60,7 @@ begin
     'tenant_id', tenant_id
   );
 end;
-$$;
+$20260125203123_seat_limit_100_and_invite_lc_fix$;
 
 revoke all on function public.create_invite_rpc(uuid, text) from public;
 grant execute on function public.create_invite_rpc(uuid, text) to authenticated;

@@ -15,7 +15,7 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as $20260124125322_get_entitlements_workspace_name$
   select
     t.id as tenant_id,
     t.workspace_name,
@@ -28,7 +28,7 @@ as $$
   where tm.user_id = auth.uid()
     and t.id = public.current_tenant_id()
   limit 1;
-$$;
+$20260124125322_get_entitlements_workspace_name$;
 
 grant execute on function public.get_entitlements() to authenticated;
 

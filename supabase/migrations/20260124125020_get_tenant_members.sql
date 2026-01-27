@@ -6,7 +6,7 @@ language sql
 stable
 security definer
 set search_path = public, auth
-as $$
+as $20260124125020_get_tenant_members$
   select
     tm.user_id,
     u.email,
@@ -17,6 +17,6 @@ as $$
   where tm.tenant_id = p_tenant_id
     and public.is_member(p_tenant_id)
   order by tm.created_at asc;
-$$;
+$20260124125020_get_tenant_members$;
 
 grant execute on function public.get_tenant_members(uuid) to authenticated;

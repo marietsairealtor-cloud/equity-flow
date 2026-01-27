@@ -6,7 +6,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth
-as $$
+as $20260125082044_delete_current_workspace_rpc$
 declare
   v_tenant_id uuid;
 begin
@@ -46,7 +46,7 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', v_tenant_id);
 end;
-$$;
+$20260125082044_delete_current_workspace_rpc$;
 
 revoke all on function public.delete_current_workspace() from public;
 grant execute on function public.delete_current_workspace() to authenticated;

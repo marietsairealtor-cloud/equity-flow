@@ -7,9 +7,9 @@ drop function if exists public.get_entitlements_v2();
 -- If created during earlier attempts; safe to drop if not used
 drop function if exists public.start_trial_current_tenant_rpc();
 
-do $$
+do $20260126104406_cleanup_unused_rpcs$
 begin
 
 exception when others then
   null;
-end $$;
+end $20260126104406_cleanup_unused_rpcs$;

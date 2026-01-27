@@ -29,7 +29,7 @@ language sql
 stable
 security definer
 set search_path = public, auth, extensions
-as $$
+as $20260126100955_effective_trial_entitlements$
   select
     tm.tenant_id,
     t.workspace_name,
@@ -47,14 +47,14 @@ as $$
   join public.tenants t on t.id = tm.tenant_id
   where tm.user_id = auth.uid()
   order by tm.created_at desc nulls last;
-$$;
+$20260126100955_effective_trial_entitlements$;
 
 grant execute on function public.get_entitlements() to authenticated;
 
 -- 3) Force PostgREST schema reload
-do $$
+do $20260126100955_effective_trial_entitlements$
 begin
 
 exception when others then
   null;
-end $$;
+end $20260126100955_effective_trial_entitlements$;

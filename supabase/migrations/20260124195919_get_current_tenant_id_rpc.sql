@@ -3,11 +3,11 @@ returns uuid
 language sql
 security definer
 set search_path = public, extensions, pg_temp
-as $$
+as $20260124195919_get_current_tenant_id_rpc$
   select up.current_tenant_id
   from public.user_profiles up
   where up.user_id = auth.uid();
-$$;
+$20260124195919_get_current_tenant_id_rpc$;
 
 revoke all on function public.get_current_tenant_id() from public;
 grant execute on function public.get_current_tenant_id() to authenticated;

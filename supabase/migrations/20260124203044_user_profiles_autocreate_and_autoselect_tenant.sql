@@ -19,7 +19,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public, extensions, pg_temp
-as $$
+as $20260124203044_user_profiles_autocreate_and_autoselect_tenant$
 declare
   v_uid uuid;
   v_cur uuid;
@@ -51,7 +51,7 @@ begin
       where user_id = v_uid;
     end if;
   end if;
-end $$;
+end $20260124203044_user_profiles_autocreate_and_autoselect_tenant$;
 
 revoke all on function public.ensure_user_profile_and_tenant() from public;
 grant execute on function public.ensure_user_profile_and_tenant() to authenticated;
@@ -69,7 +69,7 @@ returns table (
 language sql
 security definer
 set search_path = public, extensions, pg_temp
-as $$
+as $20260124203044_user_profiles_autocreate_and_autoselect_tenant$
   with _ensure as (
     select public.ensure_user_profile_and_tenant()
   )
@@ -85,7 +85,7 @@ as $$
   where tm.user_id = auth.uid()
     and tm.tenant_id = public.current_tenant_id()
   limit 1;
-$$;
+$20260124203044_user_profiles_autocreate_and_autoselect_tenant$;
 
 revoke all on function public.get_entitlements() from public;
 grant execute on function public.get_entitlements() to authenticated;

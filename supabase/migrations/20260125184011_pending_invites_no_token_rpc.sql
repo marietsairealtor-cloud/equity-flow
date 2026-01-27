@@ -17,7 +17,7 @@ language sql
 security definer
 stable
 set search_path = public, auth, extensions
-as $$
+as $20260125184011_pending_invites_no_token_rpc$
   with me as (
     select lower(u.email) as email_lc
     from auth.users u
@@ -38,7 +38,7 @@ as $$
     and i.accepted_at is null
     and i.invited_email_lc = me.email_lc
   order by i.created_at desc;
-$$;
+$20260125184011_pending_invites_no_token_rpc$;
 
 revoke all on function public.get_my_pending_invites_rpc() from public;
 grant execute on function public.get_my_pending_invites_rpc() to authenticated;
@@ -49,7 +49,7 @@ language plpgsql
 security definer
 volatile
 set search_path = public, auth, extensions
-as $$
+as $20260125184011_pending_invites_no_token_rpc$
 declare
   v_token text;
   v_my_email_lc text;
@@ -76,7 +76,7 @@ begin
 
   return public.accept_invite(v_token);
 end;
-$$;
+$20260125184011_pending_invites_no_token_rpc$;
 
 revoke all on function public.accept_my_invite_rpc(uuid) from public;
 grant execute on function public.accept_my_invite_rpc(uuid) to authenticated;

@@ -1,7 +1,7 @@
 create unique index if not exists tenant_memberships_tenant_user_ux
 on public.tenant_memberships(tenant_id, user_id);
 
-do $$
+do $20260124185043_hardening_memberships_trial_constraints$
 begin
   if not exists (
     select 1
@@ -20,4 +20,4 @@ begin
         )
       );
   end if;
-end $$;
+end $20260124185043_hardening_memberships_trial_constraints$;

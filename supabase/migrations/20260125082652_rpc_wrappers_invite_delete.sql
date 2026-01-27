@@ -8,7 +8,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth, extensions
-as $$
+as $20260125082652_rpc_wrappers_invite_delete$
 declare
   v_token text;
   v_seat_limit int;
@@ -49,7 +49,7 @@ begin
 
   return jsonb_build_object('ok', true, 'token', v_token, 'tenant_id', tenant_id, 'email', lower(email));
 end;
-$$;
+$20260125082652_rpc_wrappers_invite_delete$;
 
 revoke all on function public.create_invite_rpc(uuid, text) from public;
 grant execute on function public.create_invite_rpc(uuid, text) to authenticated;
@@ -64,7 +64,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth
-as $$
+as $20260125082652_rpc_wrappers_invite_delete$
 declare
   v_tenant_id uuid;
 begin
@@ -104,7 +104,7 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', v_tenant_id);
 end;
-$$;
+$20260125082652_rpc_wrappers_invite_delete$;
 
 revoke all on function public.delete_current_workspace_rpc() from public;
 grant execute on function public.delete_current_workspace_rpc() to authenticated;
