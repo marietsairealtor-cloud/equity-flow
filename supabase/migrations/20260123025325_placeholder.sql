@@ -1,1 +1,1 @@
-﻿-- placeholder to match remote migration history (no-op)
+-- placeholder to match remote migration history (no-op)

@@ -43,3 +43,9 @@ supabase/.temp/
 
 supabase/pending_migrations/
 WEEK2_WORKING_SET_REPORT.md
+# local backup artifacts
+*.bak_*
+*.bak.*
+package.json.bak_*
+supabase/migrations/*.bak*
+src/**/*.bak.*

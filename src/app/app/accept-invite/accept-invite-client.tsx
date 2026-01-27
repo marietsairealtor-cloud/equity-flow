@@ -1,158 +1,70 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
-type Preview = {
+type PendingInvite = {
+  invite_id: string;
   tenant_id: string;
-  workspace_name: string;
-  invited_email: string;
-  invited_role: string;
+  workspace_name: string | null;
+  invited_role: string | null;
   inviter_email: string | null;
   created_at: string;
-  expires_at: string | null;
-  status: string;
 };
 
-export default function AcceptInviteClient() {
-  const sp = useSearchParams();
-  const [token, setToken] = useState(sp.get("token") ?? "");
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const [err, setErr] = useState("");
-  const [isPending, startTransition] = useTransition();
+export default function AcceptInviteClient(props: { invites: PendingInvite[]; error: string | null }) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(props.error);
 
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  );
+  async function accept(inviteId: string) {
+    setErr(null);
+    setBusyId(inviteId);
+    try {
+      const supabase = supabaseBrowser();
+      const { data, error } = await supabase.rpc("accept_my_invite_rpc", { p_invite_id: inviteId });
+      if (error) throw error;
 
-  async function loadPreview(t: string) {
-    setErr("");
-    setPreview(null);
-    const tt = t.trim();
-    if (!tt) return;
-
-    const { data, error } = await supabase.rpc("get_invite_preview_rpc", { token: tt });
-    if (error) return setErr(error.message);
-
-    const row = Array.isArray(data) && data.length > 0 ? (data[0] as any) : null;
-    if (!row) return setErr("Invite not found");
-    setPreview(row as Preview);
-  }
-
-  useEffect(() => {
-    if (token) loadPreview(token);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function accept() {
-    const t = token.trim();
-    if (!t) return alert("token required");
-
-    startTransition(async () => {
-      setErr("");
-      const { error } = await supabase.rpc("accept_invite_rpc", { token: t });
-      if (error) return setErr(error.message);
+      // accept_invite() should add membership + set current tenant via existing flow (if it does).
+      // Route through gate to land correctly.
       window.location.href = "/app/gate";
-    });
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setBusyId(null);
+    }
   }
 
   return (
-    <div style={{ padding: 20, background: "#0b0f19", color: "white", minHeight: "100vh" }}>
-      <div style={{ maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>Accept invite</div>
+    <div style={{ padding: 24, display: "grid", gap: 12, maxWidth: 720 }}>
+      <h1 style={{ margin: 0 }}>Accept invite</h1>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-          <input
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            placeholder="invite token (or open invite link)"
-            style={{
-              flex: "1 1 320px",
-              padding: 12,
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(255,255,255,0.06)",
-              color: "white",
-            }}
-          />
-          <button
-            onClick={() => loadPreview(token)}
-            disabled={isPending}
-            style={{
-              padding: "12px 14px",
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(0,0,0,0.15)",
-              color: "white",
-              cursor: "pointer",
-            }}
-          >
-            Load
-          </button>
-        </div>
+      {err ? <pre style={{ whiteSpace: "pre-wrap", color: "crimson" }}>{err}</pre> : null}
 
-        {err ? (
-          <div style={{ marginBottom: 12, padding: 12, borderRadius: 12, background: "rgba(180,0,0,0.18)", border: "1px solid rgba(255,80,80,0.35)" }}>
-            <b>Error:</b> {err}
-          </div>
-        ) : null}
-
-        {preview ? (
-          <div style={{ padding: 12, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", marginBottom: 12 }}>
-            <div style={{ fontWeight: 900 }}>{preview.workspace_name}</div>
-            <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>
-              invited by: <b>{preview.inviter_email ?? "unknown"}</b>
+      {props.invites.length === 0 ? (
+        <div>No pending invites.</div>
+      ) : (
+        <div style={{ display: "grid", gap: 10 }}>
+          {props.invites.map((i) => (
+            <div
+              key={i.invite_id}
+              style={{ border: "1px solid #ddd", borderRadius: 12, padding: 12, display: "grid", gap: 6 }}
+            >
+              <div style={{ fontWeight: 600 }}>
+                Invite to: {i.workspace_name ?? i.tenant_id}
+              </div>
+              <div>From: {i.inviter_email ?? "(unknown)"}</div>
+              <div>Role: {i.invited_role ?? "(unspecified)"}</div>
+              <button
+                onClick={() => accept(i.invite_id)}
+                disabled={busyId === i.invite_id}
+                style={{ padding: 10, border: "1px solid #ccc", borderRadius: 8, cursor: "pointer", width: 140 }}
+              >
+                {busyId === i.invite_id ? "Accepting..." : "Accept"}
+              </button>
             </div>
-            <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>
-              role: {preview.invited_role} | status: {preview.status}
-            </div>
-            {preview.expires_at ? (
-              <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>expires: {String(preview.expires_at)}</div>
-            ) : null}
-          </div>
-        ) : null}
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            onClick={accept}
-            disabled={isPending || (Boolean(preview?.status) && preview!.status !== "open")}
-            style={{
-              padding: "12px 14px",
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(0,0,0,0.25)",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: 800,
-              opacity: preview?.status && preview.status !== "open" ? 0.6 : 1,
-            }}
-            title={preview?.status && preview.status !== "open" ? "Invite is not open" : "Accept"}
-          >
-            Accept
-          </button>
-
-          <button
-            onClick={() => (window.location.href = "/app/workspace")}
-            disabled={isPending}
-            style={{
-              padding: "12px 14px",
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(0,0,0,0.15)",
-              color: "white",
-              cursor: "pointer",
-            }}
-          >
-            Back
-          </button>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

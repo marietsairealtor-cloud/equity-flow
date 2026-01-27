@@ -1,0 +1,100 @@
+-- Free/Trial/Core plan actions (no Pro)
+-- Assumptions from existing system:
+-- - public.get_entitlements() exists and is used for routing
+-- - public.start_trial(tenant_id uuid) exists (pending -> trialing + stamps 14 days)
+-- - public.current_tenant_id() exists
+-- - tenants.subscription_status is enum public.subscription_status
+-- - tenants.subscription_tier is currently text (existing values like 'core'); we will use 'free' and 'core'
+
+create or replace function public.set_plan_free_current_tenant_rpc()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, auth, extensions
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_tid uuid := public.current_tenant_id();
+  v_is_owner boolean;
+begin
+  if v_uid is null then
+    raise exception 'AUTH_REQUIRED';
+  end if;
+
+  if v_tid is null then
+    raise exception 'NO_CURRENT_TENANT';
+  end if;
+
+  select exists (
+    select 1
+    from public.tenant_memberships tm
+    where tm.tenant_id = v_tid
+      and tm.user_id = v_uid
+      and tm.role = 'owner'
+  ) into v_is_owner;
+
+  if not v_is_owner then
+    raise exception 'OWNER_ONLY';
+  end if;
+
+  update public.tenants t
+    set subscription_status = 'active'::public.subscription_status,
+        subscription_tier = 'free'
+  where t.id = v_tid;
+
+  return jsonb_build_object('ok', true, 'tenant_id', v_tid, 'tier', 'free', 'status', 'active');
+end;
+$$;
+
+grant execute on function public.set_plan_free_current_tenant_rpc() to authenticated;
+
+create or replace function public.start_trial_current_tenant_rpc()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, auth, extensions
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_tid uuid := public.current_tenant_id();
+  v_is_owner boolean;
+  v_trial_started_at timestamptz;
+begin
+  if v_uid is null then
+    raise exception 'AUTH_REQUIRED';
+  end if;
+
+  if v_tid is null then
+    raise exception 'NO_CURRENT_TENANT';
+  end if;
+
+  select exists (
+    select 1
+    from public.tenant_memberships tm
+    where tm.tenant_id = v_tid
+      and tm.user_id = v_uid
+      and tm.role = 'owner'
+  ) into v_is_owner;
+
+  if not v_is_owner then
+    raise exception 'OWNER_ONLY';
+  end if;
+
+  select t.trial_started_at
+  into v_trial_started_at
+  from public.tenants t
+  where t.id = v_tid;
+
+  -- One-time trial per workspace: if it ever started, it cannot be started again
+  if v_trial_started_at is not null then
+    raise exception 'TRIAL_ALREADY_USED';
+  end if;
+
+  -- Calls the existing canonical billing transition RPC you already have
+  perform public.start_trial(v_tid);
+
+  return jsonb_build_object('ok', true, 'tenant_id', v_tid, 'status', 'trialing', 'tier', 'core');
+end;
+$$;
+
+grant execute on function public.start_trial_current_tenant_rpc() to authenticated;
