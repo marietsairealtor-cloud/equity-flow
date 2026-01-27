@@ -62,3 +62,7 @@ docs/now.template.md
 
 # Local proof logs / snapshots
 docs/_proof_logs/
+# Supabase local CLI state (do not commit)
+supabase/.branches/
+supabase/.cache/
+supabase/.gitignore
