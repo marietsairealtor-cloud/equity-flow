@@ -7,7 +7,7 @@ language plpgsql
 security definer
 volatile
 set search_path = public, auth, extensions
-as $20260125203814_accept_my_invite_returns_jsonb_ok$
+as $function$
 declare
   v_token text;
   v_my_email_lc text;
@@ -37,7 +37,7 @@ begin
 
   return jsonb_build_object('ok', true);
 end;
-$20260125203814_accept_my_invite_returns_jsonb_ok$;
+$function$;
 
 revoke all on function public.accept_my_invite_rpc(uuid) from public;
 grant execute on function public.accept_my_invite_rpc(uuid) to authenticated;

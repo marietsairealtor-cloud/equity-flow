@@ -1,5 +1,4 @@
 begin;
-
 drop function if exists public.get_entitlements();
 
 create function public.get_entitlements()
@@ -15,7 +14,7 @@ language sql
 stable
 security definer
 set search_path = public
-as $20260124125322_get_entitlements_workspace_name$
+as $function$
   select
     t.id as tenant_id,
     t.workspace_name,
@@ -28,7 +27,7 @@ as $20260124125322_get_entitlements_workspace_name$
   where tm.user_id = auth.uid()
     and t.id = public.current_tenant_id()
   limit 1;
-$20260124125322_get_entitlements_workspace_name$;
+$function$;
 
 grant execute on function public.get_entitlements() to authenticated;
 

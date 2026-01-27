@@ -6,7 +6,7 @@ returns table(tenant_id uuid, deal_id uuid)
 language plpgsql
 security definer
 set search_path = public
-as $20260123134339_005_fix_seed_status_value$
+as $function$
 declare
   v_user_id uuid := auth.uid();
   v_tenant_id uuid;
@@ -37,7 +37,7 @@ begin
 
   return query select v_tenant_id, v_deal_id;
 end;
-$20260123134339_005_fix_seed_status_value$;
+$function$;
 
 revoke all on function public.provision_upgrade_save(text, jsonb) from public;
 grant execute on function public.provision_upgrade_save(text, jsonb) to authenticated;
@@ -51,7 +51,7 @@ returns table(tenant_id uuid, deal_id uuid)
 language plpgsql
 security definer
 set search_path = public
-as $20260123134339_005_fix_seed_status_value$
+as $function$
 declare
   v_tenant_id uuid;
   v_deal_id uuid;
@@ -85,7 +85,7 @@ begin
 
   return query select v_tenant_id, v_deal_id;
 end;
-$20260123134339_005_fix_seed_status_value$;
+$function$;
 
 revoke all on function public.admin_provision_upgrade_save(uuid, text, jsonb) from public;
 revoke all on function public.admin_provision_upgrade_save(uuid, text, jsonb) from authenticated;

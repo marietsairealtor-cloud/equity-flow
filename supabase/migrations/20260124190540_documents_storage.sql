@@ -8,17 +8,17 @@ create or replace function public.storage_tenant_id(p_name text)
 returns uuid
 language sql
 stable
-as $20260124190540_documents_storage$
+as $function$
   select nullif(split_part(p_name,'/',1),'')::uuid;
-$20260124190540_documents_storage$;
+$function$;
 
 create or replace function public.storage_deal_id(p_name text)
 returns uuid
 language sql
 stable
-as $20260124190540_documents_storage$
+as $function$
   select nullif(split_part(p_name,'/',2),'')::uuid;
-$20260124190540_documents_storage$;
+$function$;
 
 -- Documents table
 create table if not exists public.documents (
@@ -83,7 +83,7 @@ create or replace function public.create_document_after_upload(
 returns uuid
 language plpgsql
 security definer
-as $20260124190540_documents_storage$
+as $function$
 declare
   v_tenant uuid;
   v_id uuid;
@@ -106,7 +106,7 @@ begin
   returning id into v_id;
 
   return v_id;
-end $20260124190540_documents_storage$;
+end $function$;
 
 revoke all on function public.create_document_after_upload(uuid, text, text, text, bigint) from public;
 grant execute on function public.create_document_after_upload(uuid, text, text, text, bigint) to authenticated;

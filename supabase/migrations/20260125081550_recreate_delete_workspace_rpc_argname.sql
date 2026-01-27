@@ -5,7 +5,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth
-as $20260125081550_recreate_delete_workspace_rpc_argname$
+as $function$
 begin
   if auth.uid() is null then
     raise exception 'AUTH_REQUIRED';
@@ -38,7 +38,7 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', tenant_id);
 end;
-$20260125081550_recreate_delete_workspace_rpc_argname$;
+$function$;
 
 revoke all on function public.delete_workspace_rpc(uuid) from public;
 grant execute on function public.delete_workspace_rpc(uuid) to authenticated;

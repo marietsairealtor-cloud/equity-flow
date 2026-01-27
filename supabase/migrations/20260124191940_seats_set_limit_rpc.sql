@@ -3,7 +3,7 @@ returns table(tenant_id uuid, seat_limit int, seat_count int)
 language plpgsql
 security definer
 set search_path = public, extensions, pg_temp
-as $20260124191940_seats_set_limit_rpc$
+as $function$
 declare
   v_tenant uuid;
 begin
@@ -28,7 +28,7 @@ begin
   select t.id, t.seat_limit, t.seat_count
   from public.tenants t
   where t.id = v_tenant;
-end $20260124191940_seats_set_limit_rpc$;
+end $function$;
 
 revoke all on function public.set_current_tenant_seat_limit(int) from public;
 grant execute on function public.set_current_tenant_seat_limit(int) to authenticated;

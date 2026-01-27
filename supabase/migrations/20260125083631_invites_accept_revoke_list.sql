@@ -1,12 +1,11 @@
 begin;
-
 -- Create invite (owner/admin only) -> matches tenant_invites columns
 create or replace function public.create_invite_rpc(tenant_id uuid, email text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth, extensions
-as $20260125083631_invites_accept_revoke_list$
+as $function$
 declare
   v_token text;
   v_seat_limit int;
@@ -73,7 +72,7 @@ begin
     'token', v_token
   );
 end;
-$20260125083631_invites_accept_revoke_list$;
+$function$;
 
 revoke all on function public.create_invite_rpc(uuid, text) from public;
 grant execute on function public.create_invite_rpc(uuid, text) to authenticated;
@@ -99,7 +98,7 @@ language sql
 stable
 security definer
 set search_path = public, auth
-as $20260125083631_invites_accept_revoke_list$
+as $function$
   with ct as (
     select public.current_tenant_id() as tenant_id
   )
@@ -125,7 +124,7 @@ as $20260125083631_invites_accept_revoke_list$
         and tm.role::text in ('owner','admin')
     )
   order by i.created_at desc;
-$20260125083631_invites_accept_revoke_list$;
+$function$;
 
 revoke all on function public.get_invites_rpc() from public;
 grant execute on function public.get_invites_rpc() to authenticated;
@@ -139,7 +138,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth
-as $20260125083631_invites_accept_revoke_list$
+as $function$
 declare
   v_tenant_id uuid;
 begin
@@ -173,7 +172,7 @@ begin
 
   return jsonb_build_object('ok', true, 'invite_id', revoke_invite_rpc.invite_id);
 end;
-$20260125083631_invites_accept_revoke_list$;
+$function$;
 
 revoke all on function public.revoke_invite_rpc(uuid) from public;
 grant execute on function public.revoke_invite_rpc(uuid) to authenticated;
@@ -187,7 +186,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth
-as $20260125083631_invites_accept_revoke_list$
+as $function$
 declare
   v_inv public.tenant_invites%rowtype;
   v_email text;
@@ -244,7 +243,7 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', v_inv.tenant_id, 'role', v_inv.invited_role);
 end;
-$20260125083631_invites_accept_revoke_list$;
+$function$;
 
 revoke all on function public.accept_invite_rpc(text) from public;
 grant execute on function public.accept_invite_rpc(text) to authenticated;

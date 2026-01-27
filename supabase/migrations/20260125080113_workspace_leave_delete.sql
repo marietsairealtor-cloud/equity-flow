@@ -4,7 +4,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public, auth
-as $20260125080113_workspace_leave_delete$
+as $function$
 begin
   if auth.uid() is null then
     raise exception 'AUTH_REQUIRED';
@@ -36,7 +36,7 @@ begin
     );
   end if;
 end;
-$20260125080113_workspace_leave_delete$;
+$function$;
 
 revoke all on function public.leave_workspace(uuid) from public;
 grant execute on function public.leave_workspace(uuid) to authenticated;
@@ -47,7 +47,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public, auth
-as $20260125080113_workspace_leave_delete$
+as $function$
 begin
   if auth.uid() is null then
     raise exception 'AUTH_REQUIRED';
@@ -79,7 +79,7 @@ begin
   delete from public.tenant_memberships where tenant_id = p_tenant_id;
   delete from public.tenants where id = p_tenant_id;
 end;
-$20260125080113_workspace_leave_delete$;
+$function$;
 
 revoke all on function public.delete_workspace(uuid) from public;
 grant execute on function public.delete_workspace(uuid) to authenticated;

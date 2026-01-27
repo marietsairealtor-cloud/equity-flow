@@ -6,7 +6,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth
-as $20260125081125_delete_workspace_rpc_wrapper$
+as $function$
 begin
   -- call the underlying function if present; otherwise perform inline delete (same logic)
   if to_regprocedure('public.delete_workspace(uuid)') is not null then
@@ -42,7 +42,7 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', p_tenant_id);
 end;
-$20260125081125_delete_workspace_rpc_wrapper$;
+$function$;
 
 revoke all on function public.delete_workspace_rpc(uuid) from public;
 grant execute on function public.delete_workspace_rpc(uuid) to authenticated;

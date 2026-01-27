@@ -5,11 +5,11 @@ language sql
 stable
 security definer
 set search_path = public, extensions, pg_temp
-as $20260124191422_seat_enforcement_ui_support$
+as $function$
   select t.seat_limit, t.seat_count
   from public.tenants t
   where t.id = public.current_tenant_id();
-$20260124191422_seat_enforcement_ui_support$;
+$function$;
 
 revoke all on function public.get_current_tenant_seats() from public;
 grant execute on function public.get_current_tenant_seats() to authenticated;
@@ -20,7 +20,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public, extensions, pg_temp
-as $20260124191422_seat_enforcement_ui_support$
+as $function$
 declare
   v_limit int;
   v_count int;
@@ -36,7 +36,7 @@ begin
   end if;
 
   return new;
-end $20260124191422_seat_enforcement_ui_support$;
+end $function$;
 
 drop trigger if exists trg_enforce_seat_limit_on_membership on public.tenant_memberships;
 create trigger trg_enforce_seat_limit_on_membership

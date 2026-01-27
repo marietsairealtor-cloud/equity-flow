@@ -11,7 +11,7 @@ returns table (
 language sql
 security definer
 set search_path = public, extensions, pg_temp
-as $20260124203424_fix_get_entitlements_remove_membership_tier$
+as $function$
   with _ensure as (
     select public.ensure_user_profile_and_tenant()
   )
@@ -27,7 +27,7 @@ as $20260124203424_fix_get_entitlements_remove_membership_tier$
   where tm.user_id = auth.uid()
     and tm.tenant_id = public.current_tenant_id()
   limit 1;
-$20260124203424_fix_get_entitlements_remove_membership_tier$;
+$function$;
 
 revoke all on function public.get_entitlements() from public;
 grant execute on function public.get_entitlements() to authenticated;
@@ -45,7 +45,7 @@ returns table (
 language sql
 security definer
 set search_path = public, extensions, pg_temp
-as $20260124203424_fix_get_entitlements_remove_membership_tier$
+as $function$
   select
     t.id as tenant_id,
     t.workspace_name,
@@ -57,7 +57,7 @@ as $20260124203424_fix_get_entitlements_remove_membership_tier$
   join public.tenants t on t.id = tm.tenant_id
   where tm.user_id = auth.uid()
   order by tm.created_at desc;
-$20260124203424_fix_get_entitlements_remove_membership_tier$;
+$function$;
 
 revoke all on function public.get_my_workspaces() from public;
 grant execute on function public.get_my_workspaces() to authenticated;

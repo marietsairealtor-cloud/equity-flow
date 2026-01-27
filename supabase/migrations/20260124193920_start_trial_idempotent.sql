@@ -3,7 +3,7 @@ returns public.tenants
 language plpgsql
 security definer
 set search_path = public, extensions, pg_temp
-as $20260124193920_start_trial_idempotent$
+as $function$
 declare
   t public.tenants;
 begin
@@ -35,7 +35,7 @@ begin
   end if;
 
   return t;
-end $20260124193920_start_trial_idempotent$;
+end $function$;
 
 revoke all on function public.start_trial(uuid) from public;
 grant execute on function public.start_trial(uuid) to authenticated;

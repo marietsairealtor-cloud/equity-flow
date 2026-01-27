@@ -12,7 +12,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = public
-as $20260126152107_update_deal_status_rpc_fix$
+as $function$
 declare
   v_id uuid;
   v_row_version integer;
@@ -38,7 +38,7 @@ begin
   row_version := v_row_version;
   return next;
 end
-$20260126152107_update_deal_status_rpc_fix$;
+$function$;
 
 revoke all on function public.update_deal_status_rpc(uuid, integer, text) from public;
 grant execute on function public.update_deal_status_rpc(uuid, integer, text) to authenticated;

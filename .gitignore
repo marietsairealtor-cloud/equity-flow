@@ -56,3 +56,7 @@ docs/handoff_snapshot_*.txt
 docs/handoff_*.txt
 docs/now.md
 docs/now.template.md
+
+# Track now.md (handoff metadata)
+!docs/now.md
+

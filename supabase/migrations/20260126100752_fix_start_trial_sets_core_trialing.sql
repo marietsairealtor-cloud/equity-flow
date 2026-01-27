@@ -6,7 +6,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public, auth, extensions
-as $20260126100752_fix_start_trial_sets_core_trialing$
+as $function$
 declare
   v_trial_ends timestamptz := now() + (p_days || ' days')::interval;
 begin
@@ -19,14 +19,13 @@ begin
 
   -- keep existing billing/audit logic if you have it elsewhere; this is the minimal state fix
 end;
-$20260126100752_fix_start_trial_sets_core_trialing$;
+$function$;
 
 grant execute on function public.start_trial(uuid, integer) to authenticated;
 grant execute on function public.start_trial(uuid) to authenticated;
 
-do $20260126100752_fix_start_trial_sets_core_trialing$
+do $function$
 begin
-
 exception when others then
   null;
-end $20260126100752_fix_start_trial_sets_core_trialing$;
+end $function$;

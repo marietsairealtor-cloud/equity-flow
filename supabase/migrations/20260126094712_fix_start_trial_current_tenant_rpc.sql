@@ -5,7 +5,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth, extensions
-as $20260126094712_fix_start_trial_current_tenant_rpc$
+as $function$
 declare
   v_uid uuid := auth.uid();
   v_tid uuid := public.current_tenant_id();
@@ -45,14 +45,13 @@ begin
 
   return jsonb_build_object('ok', true, 'tenant_id', v_tid, 'status', 'trialing', 'tier', 'core');
 end;
-$20260126094712_fix_start_trial_current_tenant_rpc$;
+$function$;
 
 grant execute on function public.start_trial_current_tenant_rpc() to authenticated;
 
-do $20260126094712_fix_start_trial_current_tenant_rpc$
+do $function$
 begin
-
 exception when others then
   -- ignore if notify channel not present; local supabase typically supports it
   null;
-end $20260126094712_fix_start_trial_current_tenant_rpc$;
+end $function$;

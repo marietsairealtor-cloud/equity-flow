@@ -1,6 +1,5 @@
 -- Week 3: Upgrade & Save idempotency (deal-level)
 begin;
-
 -- 1) Add idempotency key to deals
 alter table public.deals
   add column if not exists idempotency_key text;

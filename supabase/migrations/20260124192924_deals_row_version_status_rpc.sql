@@ -12,7 +12,7 @@ returns table(id uuid, status public.deal_status, row_version int)
 language plpgsql
 security definer
 set search_path = public, extensions, pg_temp
-as $20260124192924_deals_row_version_status_rpc$
+as $function$
 begin
   if public.current_tenant_id() is null then
     raise exception 'AUTH_REQUIRED';
@@ -40,7 +40,7 @@ begin
       raise exception 'ROW_VERSION_CONFLICT';
     end if;
   end if;
-end $20260124192924_deals_row_version_status_rpc$;
+end $function$;
 
 revoke all on function public.set_deal_status(uuid, public.deal_status, int) from public;
 grant execute on function public.set_deal_status(uuid, public.deal_status, int) to authenticated;
