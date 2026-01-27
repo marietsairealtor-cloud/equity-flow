@@ -1,5 +1,22 @@
-param()
+﻿param()
 
+
+
+function Run-SupabaseStatus {
+  try {
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/supabase-ensure.ps1 status | Out-Host
+  } catch {
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/supabase-ensure.ps1 start  | Out-Host
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/supabase-ensure.ps1 status | Out-Host
+  }
+}
+function Normalize-ProbeCommand([string]$Line) {
+  if ($null -eq $Line) { return "" }
+  $s = $Line.Trim()
+  # Strip markdown bullets like "-", "*", "•"
+  $s = ($s -replace '^(?:[-\*\u2022]\s+)+', '').Trim()
+  return $s
+}
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
@@ -224,3 +241,6 @@ try { Set-Clipboard -Value $text } catch {}
 
 Write-Host ("Wrote: {0}" -f $outFile)
 Write-Host ("Latest snapshot: {0}" -f $latestPath)
+
+
+
