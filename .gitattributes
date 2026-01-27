@@ -1,13 +1,18 @@
-﻿* text=auto
+# Normalize text files to LF in repo; working copy handled by git
+* text=auto
 
-*.ts text eol=lf
-*.tsx text eol=lf
+# Keep scripts predictable (Windows execution ok; content stable)
+*.ps1 text eol=lf
+
+# JS/TS/JSON/MD stable
 *.js text eol=lf
 *.jsx text eol=lf
-*.sql text eol=lf
-*.md text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
 *.json text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
 
-*.ps1 text eol=crlf
+# Windows scripts
+*.cmd text eol=crlf
+*.bat text eol=crlf
