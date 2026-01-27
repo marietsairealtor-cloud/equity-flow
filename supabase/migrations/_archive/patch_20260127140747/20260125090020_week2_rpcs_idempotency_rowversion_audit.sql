@@ -1,15 +1,3 @@
--- Ensure deals has columns required by list_deals() (idempotent; fixes replay drift)
-do $m$
-begin
-  if exists (
-    select 1
-    from information_schema.tables
-    where table_schema='public' and table_name='deals'
-  ) then
-    alter table public.deals add column if not exists market_area text;
-  end if;
-end
-$m$;
 -- Week 2 RPCs: idempotency + row_version + audit + list/create/update
 -- Clean rewrite (removes any injected "OK:" garbage). No BEGIN/COMMIT wrappers.
 

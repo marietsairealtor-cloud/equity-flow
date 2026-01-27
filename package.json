@@ -1,37 +1,39 @@
 {
-    "name":  "equity-flow",
-    "version":  "0.1.0",
-    "private":  true,
-    "scripts":  {
-  "end:commit": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/end-commit.ps1",
-  "end": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/end.ps1",
-                    "lint:migrations":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/lint-migrations.ps1",
-                    "build":  "next build",
-                    "db:push:remote":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Remote",
-                    "db:push":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1",
-                    "start":  "next start",
-                    "lint":  "eslint",
-                    "db:push:local":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Local",
-                    "now":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Get-Content docs/now.md -Raw\"",
-                    "dev":  "next dev -p 3001",
-                    "handoff":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/handoff-snapshot.ps1",
-                    "session:new":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/new-session.ps1"
-                },
-    "dependencies":  {
-                         "@supabase/ssr":  "^0.8.0",
-                         "@supabase/supabase-js":  "^2.91.0",
-                         "next":  "16.1.4",
-                         "react":  "19.2.3",
-                         "react-dom":  "19.2.3"
-                     },
-    "devDependencies":  {
-                            "@tailwindcss/postcss":  "^4",
-                            "@types/node":  "^20",
-                            "@types/react":  "^19",
-                            "@types/react-dom":  "^19",
-                            "eslint":  "^9",
-                            "eslint-config-next":  "16.1.4",
-                            "tailwindcss":  "^4",
-                            "typescript":  "^5"
-                        }
+  "name": "equity-flow",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "end:commit": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/end-commit.ps1",
+    "end": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/end.ps1",
+    "lint:migrations": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/lint-migrations.ps1",
+    "build": "next build",
+    "db:push:remote": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Remote",
+    "db:push": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1",
+    "start": "next start",
+    "lint": "eslint",
+    "db:push:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Local",
+    "now": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Get-Content docs/now.md -Raw\"",
+    "dev": "next dev -p 3001",
+    "handoff": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/handoff-snapshot.ps1",
+    "session:new": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/new-session.ps1",
+    "local:proof": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/local-proof.ps1",
+    "remote:deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/remote-deploy.ps1"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.91.0",
+    "next": "16.1.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
 }

@@ -1,6 +1,7 @@
 -- 20260124000007_002_deal_status_enum.sql
--- FIX: drop legacy CHECK constraints on deals.status before changing type (prevents deal_status = text)
+-- SAFE / type-agnostic: prevents enum=text operator errors on fresh resets.
 
+-- Create enum if missing (no CREATE TYPE IF NOT EXISTS in Postgres)
 do $m$
 begin
   if not exists (
@@ -20,9 +21,8 @@ begin
 end
 $m$;
 
+-- Ensure deals.status uses enum (handles existing DEFAULT + common legacy values)
 do $m$
-declare
-  r record;
 begin
   -- if column missing, no-op
   if not exists (
@@ -32,21 +32,6 @@ begin
   ) then
     return;
   end if;
-
-  -- DROP any CHECK constraints that reference "status" on public.deals
-  -- (legacy constraints comparing enum to text will fail during ALTER TYPE validation)
-  for r in
-    select c.conname
-    from pg_constraint c
-    join pg_class t on t.oid = c.conrelid
-    join pg_namespace n on n.oid = t.relnamespace
-    where n.nspname = 'public'
-      and t.relname = 'deals'
-      and c.contype = 'c'
-      and pg_get_constraintdef(c.oid) ilike '%status%'
-  loop
-    execute format('alter table public.deals drop constraint if exists %I', r.conname);
-  end loop;
 
   -- drop default if any (ignore errors)
   begin

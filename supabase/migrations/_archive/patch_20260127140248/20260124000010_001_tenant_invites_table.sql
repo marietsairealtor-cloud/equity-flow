@@ -5,7 +5,6 @@ create table if not exists public.tenant_invites (
   tenant_id uuid not null references public.tenants(id) on delete cascade,
 
   invited_email text not null,
-  invited_role text not null default 'member',
   invited_email_lc text generated always as (lower(invited_email)) stored,
 
   token text not null,
