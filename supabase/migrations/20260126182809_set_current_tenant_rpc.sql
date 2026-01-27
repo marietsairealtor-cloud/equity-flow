@@ -1,9 +1,5 @@
--- set_current_tenant RPC (canonical; idempotent)
--- Note: uses a named dollar-quote tag (never $$) to avoid PowerShell $$ expansion issues.
-
-drop function if exists public.set_current_tenant(uuid);
-
-create function public.set_current_tenant(p_tenant_id uuid)
+-- set_current_tenant RPC (stable; named dollar-tag)
+create or replace function public.set_current_tenant(p_tenant_id uuid)
 returns uuid
 language plpgsql
 security definer
