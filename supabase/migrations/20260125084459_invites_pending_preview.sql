@@ -102,7 +102,4 @@ revoke all on function public.get_invite_preview_rpc(text) from public;
 grant execute on function public.get_invite_preview_rpc(text) to authenticated;
 comment on function public.get_invite_preview_rpc(text) is 'Preview invite token (shows inviter/workspace; email mismatch flagged).';
 
-select pg_notify('pgrst','reload schema');
-select pg_notify('pgrst','reload');
-
 commit;

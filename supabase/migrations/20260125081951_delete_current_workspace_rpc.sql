@@ -52,7 +52,3 @@ revoke all on function public.delete_current_workspace() from public;
 grant execute on function public.delete_current_workspace() to authenticated;
 
 comment on function public.delete_current_workspace() is 'Owner-only hard delete of the CURRENT tenant workspace (no args).';
-
--- Force PostgREST schema cache reload
-select pg_notify('pgrst', 'reload schema');
-select pg_notify('pgrst', 'reload');

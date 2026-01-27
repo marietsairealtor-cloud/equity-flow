@@ -41,7 +41,7 @@ grant execute on function public.get_entitlements_v2() to authenticated;
 
 do $$
 begin
-  perform pg_notify('pgrst', 'reload schema');
+
 exception when others then
   null;
 end $$;

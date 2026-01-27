@@ -7,10 +7,9 @@ drop function if exists public.get_entitlements_v2();
 -- If created during earlier attempts; safe to drop if not used
 drop function if exists public.start_trial_current_tenant_rpc();
 
--- Optional: force PostgREST schema reload
 do $$
 begin
-  perform pg_notify('pgrst', 'reload schema');
+
 exception when others then
   null;
 end $$;

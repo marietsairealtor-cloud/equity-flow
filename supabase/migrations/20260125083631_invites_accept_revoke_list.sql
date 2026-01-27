@@ -79,7 +79,6 @@ revoke all on function public.create_invite_rpc(uuid, text) from public;
 grant execute on function public.create_invite_rpc(uuid, text) to authenticated;
 comment on function public.create_invite_rpc(uuid, text) is 'Create invite (owner/admin).';
 
-
 -- List invites for CURRENT tenant (owner/admin only)
 drop function if exists public.get_invites_rpc();
 
@@ -132,7 +131,6 @@ revoke all on function public.get_invites_rpc() from public;
 grant execute on function public.get_invites_rpc() to authenticated;
 comment on function public.get_invites_rpc() is 'List invites for CURRENT tenant (owner/admin).';
 
-
 -- Revoke invite by invite id (owner/admin only)
 drop function if exists public.revoke_invite_rpc(uuid);
 
@@ -180,7 +178,6 @@ $$;
 revoke all on function public.revoke_invite_rpc(uuid) from public;
 grant execute on function public.revoke_invite_rpc(uuid) to authenticated;
 comment on function public.revoke_invite_rpc(uuid) is 'Revoke invite (owner/admin).';
-
 
 -- Accept invite by token (authenticated)
 drop function if exists public.accept_invite_rpc(text);
@@ -252,9 +249,5 @@ $$;
 revoke all on function public.accept_invite_rpc(text) from public;
 grant execute on function public.accept_invite_rpc(text) to authenticated;
 comment on function public.accept_invite_rpc(text) is 'Accept invite by token; creates membership and selects tenant.';
-
--- Force PostgREST schema reload
-select pg_notify('pgrst','reload schema');
-select pg_notify('pgrst','reload');
 
 commit;

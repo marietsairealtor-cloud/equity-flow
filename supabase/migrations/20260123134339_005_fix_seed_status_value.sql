@@ -42,7 +42,6 @@ $$;
 revoke all on function public.provision_upgrade_save(text, jsonb) from public;
 grant execute on function public.provision_upgrade_save(text, jsonb) to authenticated;
 
-
 create or replace function public.admin_provision_upgrade_save(
   p_user_id uuid,
   p_workspace_name text,

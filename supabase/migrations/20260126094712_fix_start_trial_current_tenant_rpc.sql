@@ -49,10 +49,9 @@ $$;
 
 grant execute on function public.start_trial_current_tenant_rpc() to authenticated;
 
--- Force PostgREST to reload schema cache
 do $$
 begin
-  perform pg_notify('pgrst', 'reload schema');
+
 exception when others then
   -- ignore if notify channel not present; local supabase typically supports it
   null;

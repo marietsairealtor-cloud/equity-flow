@@ -26,7 +26,7 @@ grant execute on function public.start_trial(uuid) to authenticated;
 
 do $$
 begin
-  perform pg_notify('pgrst', 'reload schema');
+
 exception when others then
   null;
 end $$;

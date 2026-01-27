@@ -86,6 +86,4 @@ $function$;
 
 grant execute on function public.provision_upgrade_save(text, jsonb, text) to authenticated;
 
-select pg_notify('pgrst','reload schema');
-
 commit;

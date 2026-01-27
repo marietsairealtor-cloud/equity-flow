@@ -43,7 +43,3 @@ revoke all on function public.delete_workspace(uuid) from public;
 grant execute on function public.delete_workspace(uuid) to authenticated;
 
 comment on function public.delete_workspace(uuid) is 'Owner-only hard delete of a tenant workspace.';
-
--- Force PostgREST to reload schema cache now
-select pg_notify('pgrst', 'reload schema');
-select pg_notify('pgrst', 'reload');

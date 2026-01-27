@@ -47,7 +47,3 @@ $$;
 revoke all on function public.delete_workspace_rpc(uuid) from public;
 grant execute on function public.delete_workspace_rpc(uuid) to authenticated;
 comment on function public.delete_workspace_rpc(uuid) is 'Owner-only hard delete of a tenant workspace (RPC wrapper).';
-
--- Force PostgREST schema cache reload
-select pg_notify('pgrst', 'reload schema');
-select pg_notify('pgrst', 'reload');

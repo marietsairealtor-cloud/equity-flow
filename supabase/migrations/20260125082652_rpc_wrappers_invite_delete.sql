@@ -110,7 +110,3 @@ revoke all on function public.delete_current_workspace_rpc() from public;
 grant execute on function public.delete_current_workspace_rpc() to authenticated;
 
 comment on function public.delete_current_workspace_rpc() is 'Canonical delete RPC: deletes CURRENT tenant (owner-only).';
-
--- Force PostgREST schema cache reload
-select pg_notify('pgrst', 'reload schema');
-select pg_notify('pgrst', 'reload');

@@ -54,7 +54,7 @@ grant execute on function public.get_entitlements() to authenticated;
 -- 3) Force PostgREST schema reload
 do $$
 begin
-  perform pg_notify('pgrst', 'reload schema');
+
 exception when others then
   null;
 end $$;
