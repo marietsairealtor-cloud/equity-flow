@@ -1,9 +1,9 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
-function supabaseServer() {
-  const cookieStore = cookies();
+async function supabaseServer() {
+  const cookieStore = await cookies();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   return createServerClient(url, anon, {
@@ -22,7 +22,7 @@ function supabaseServer() {
 }
 
 export async function POST(req: Request) {
-  const supabase = supabaseServer();
+  const supabase = await supabaseServer();
   const body = await req.json().catch(() => ({} as any));
   const tenant_id = body?.tenant_id;
 
