@@ -1,28 +1,32 @@
 {
-  "name": "equity-flow",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.91.0",
-    "next": "16.1.4",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.4",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "name":  "equity-flow",
+    "version":  "0.1.0",
+    "private":  true,
+    "scripts":  {
+                    "dev":  "next dev -p 3001",
+                    "build":  "next build",
+                    "start":  "next start",
+                    "lint":  "eslint",
+                    "lint:migrations":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/lint-migrations.ps1",
+                    "db:push:local":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Local",
+                    "db:push:remote":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Remote",
+                    "db:push":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1"
+                },
+    "dependencies":  {
+                         "@supabase/ssr":  "^0.8.0",
+                         "@supabase/supabase-js":  "^2.91.0",
+                         "next":  "16.1.4",
+                         "react":  "19.2.3",
+                         "react-dom":  "19.2.3"
+                     },
+    "devDependencies":  {
+                            "@tailwindcss/postcss":  "^4",
+                            "@types/node":  "^20",
+                            "@types/react":  "^19",
+                            "@types/react-dom":  "^19",
+                            "eslint":  "^9",
+                            "eslint-config-next":  "16.1.4",
+                            "tailwindcss":  "^4",
+                            "typescript":  "^5"
+                        }
 }
