@@ -3,15 +3,19 @@
     "version":  "0.1.0",
     "private":  true,
     "scripts":  {
-                    "dev":  "next dev -p 3001",
-                    "build":  "next build",
-                    "start":  "next start",
-                    "lint":  "eslint",
+  "end:commit": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/end-commit.ps1",
+  "end": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/end.ps1",
                     "lint:migrations":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/lint-migrations.ps1",
-                    "db:push:local":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Local",
+                    "build":  "next build",
                     "db:push:remote":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Remote",
                     "db:push":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1",
-                    "handoff":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/handoff-snapshot.ps1"
+                    "start":  "next start",
+                    "lint":  "eslint",
+                    "db:push:local":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Local",
+                    "now":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Get-Content docs/now.md -Raw\"",
+                    "dev":  "next dev -p 3001",
+                    "handoff":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/handoff-snapshot.ps1",
+                    "session:new":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/new-session.ps1"
                 },
     "dependencies":  {
                          "@supabase/ssr":  "^0.8.0",

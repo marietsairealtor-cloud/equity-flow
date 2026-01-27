@@ -51,3 +51,8 @@ supabase/migrations/*.bak*
 src/**/*.bak.*
 # Handoff artifacts
 docs/handoff_snapshot_*.txt
+
+# handoff artifacts (generated)
+docs/handoff_*.txt
+docs/now.md
+docs/now.template.md
