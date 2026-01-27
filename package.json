@@ -10,7 +10,8 @@
                     "lint:migrations":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/lint-migrations.ps1",
                     "db:push:local":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Local",
                     "db:push:remote":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1 -Remote",
-                    "db:push":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1"
+                    "db:push":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-push.ps1",
+                    "handoff":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/handoff-snapshot.ps1"
                 },
     "dependencies":  {
                          "@supabase/ssr":  "^0.8.0",
