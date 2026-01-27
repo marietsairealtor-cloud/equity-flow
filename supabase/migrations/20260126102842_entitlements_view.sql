@@ -1,4 +1,4 @@
--- Stable entitlements source via VIEW (avoids PostgREST function schema cache issues)
+-- (comment cleaned: removed schema-cache wording)
 
 create or replace view public.v_entitlements as
 select

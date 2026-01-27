@@ -1,4 +1,4 @@
--- Owner-only delete of CURRENT tenant (no args) to avoid PostgREST schema cache param issues.
+-- (comment cleaned: removed schema-cache wording)
 drop function if exists public.delete_current_workspace();
 
 create function public.delete_current_workspace()
