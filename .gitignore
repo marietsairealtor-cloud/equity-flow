@@ -66,3 +66,7 @@ docs/_proof_logs/
 supabase/.branches/
 supabase/.cache/
 supabase/.gitignore
+
+# Allow committing the latest handoff (snapshots stay ignored)
+!docs/handoff_latest.txt
+
