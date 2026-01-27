@@ -60,3 +60,5 @@ docs/now.template.md
 # Track now.md (handoff metadata)
 !docs/now.md
 
+# Local proof logs / snapshots
+docs/_proof_logs/

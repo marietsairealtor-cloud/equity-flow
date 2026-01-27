@@ -1,21 +1,3 @@
--- Ensure tenant_invites has columns required by get_invites_rpc (idempotent; fixes replay drift)
-do $m$
-begin
-  if exists (
-    select 1
-    from information_schema.tables
-    where table_schema='public' and table_name='tenant_invites'
-  ) then
-    alter table public.tenant_invites add column if not exists invited_role text not null default 'member';
-    alter table public.tenant_invites add column if not exists token text not null default '';
-    alter table public.tenant_invites add column if not exists created_at timestamptz not null default now();
-    alter table public.tenant_invites add column if not exists expires_at timestamptz;
-    alter table public.tenant_invites add column if not exists revoked_at timestamptz;
-    alter table public.tenant_invites add column if not exists accepted_at timestamptz;
-    alter table public.tenant_invites add column if not exists accepted_by uuid;
-  end if;
-end
-$m$;
 begin;
 -- Create invite (owner/admin only) -> matches tenant_invites columns
 create or replace function public.create_invite_rpc(tenant_id uuid, email text)
