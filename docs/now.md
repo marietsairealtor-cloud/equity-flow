@@ -1,11 +1,11 @@
-Date: 2026-01-26 (America/Toronto)
+Date: 2026-01-27 (America/Toronto)
 Goal: Standardize cross-chat handoff so the next chat can continue with zero re-explaining.
 
 Mode: local
 Target DB: local Supabase stack (Docker required)
 Host: http://localhost:3001
 
-Blocker: none
+Blocker: intermittent Supabase status (container not found) unless stack is freshly started and kept running
 
 Repro:
 - Run: npm run handoff
@@ -21,12 +21,14 @@ Expected:
 - Snapshot is copied to clipboard
 
 Actual:
-- Not yet verified end-to-end after patch
+- Verified end-to-end:
+  - npm run handoff succeeds and writes snapshot + latest
+  - Local proof loop can pass when stack is up: supabase start → supabase status → supabase db reset → supabase status
 
 Last change:
 - scripts/handoff-snapshot.ps1
-  - Added required now.md field gating
-  - Captures: supabase status + probe output
+  - Required now.md field gating
+  - Captures: supabase status + probe output + build output + git diff summary
   - Writes: docs/handoff_latest.txt
   - Copies snapshot to clipboard
 
@@ -41,13 +43,22 @@ Test:
   - clipboard contains the full snapshot text
 
 Probe:
-- npm run build
+- Local proven loop (no db push):
+  - npx supabase start
+  - npx supabase status
+  - npx supabase db reset
+  - npx supabase status
+- Build probe:
+  - npm run build
+
 Last known good probe:
-- npm run build succeeded (per prior session notes)
+- 2026-01-27: local proven loop passed (when stack running) + npm run build succeeded + npm run handoff succeeded (snapshot + latest written)
 
 Next step:
+- Keep stack up when capturing evidence (run start/status first)
 - Run npm run handoff
 - Paste docs/handoff_latest.txt into the next chat
+- Commit/push any tracked file changes (if git status shows diffs)
 
 Do-not-touch:
 - billing/pricing/tiers
@@ -55,7 +66,4 @@ Do-not-touch:
 - storage
 - RLS changes
 - old migrations / migration history
-- feature work beyond handoff automation
-Patch: Verified now.md fields + handoff script gating; next run should generate snapshot + latest + clipboard.
-Which file changes: scripts/handoff-snapshot.ps1
-Do not touch list: billing, pricing, tiers, invites, storage, RLS changes, old migrations, feature work beyond handoff automation
+- feature work beyond handoff automation + deterministic local bring-up/proof loop

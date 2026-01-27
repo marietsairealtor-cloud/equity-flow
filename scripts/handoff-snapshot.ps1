@@ -48,7 +48,9 @@ function RunCmd([string]$cmd) {
 
     $stdout = if (Test-Path $outFile) { Get-Content $outFile -Raw } else { "" }
     $stderr = if (Test-Path $errFile) { Get-Content $errFile -Raw } else { "" }
-    $s = ($stdout + $stderr).TrimEnd()
+    $stdout = if ($null -ne $stdout) { [string]$stdout } else { "" }
+$stderr = if ($null -ne $stderr) { [string]$stderr } else { "" }
+$s = ($stdout + $stderr).TrimEnd()
 
     return [pscustomobject]@{
       ExitCode = $p.ExitCode
