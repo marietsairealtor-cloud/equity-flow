@@ -72,3 +72,4 @@ supabase/.gitignore
 
 .tmp.driveupload/
 docs/_debug/
+docs/handoff_latest.txt
