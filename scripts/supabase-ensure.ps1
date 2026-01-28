@@ -1,8 +1,26 @@
 param(
   [Parameter(Mandatory=$true)]
-  [ValidateSet("stop","start","status","status-env","reset")]
   [string]$Action
 )
+
+
+# ACTION_NORMALIZATION_BEGIN
+if ($null -eq $Action) { $Action = "" }
+$Action = [string]$Action
+$Action = $Action.Trim()
+$Action = $Action.TrimEnd(';')
+
+$allowedActions = @('stop','start','status','status-env','reset')
+if (-not ($allowedActions -contains $Action)) {
+  Write-Error ("Invalid Action '{0}'. Allowed: {1}" -f $Action, ($allowedActions -join ', '))
+  exit 1
+}
+
+if ($env:EF_PROBE_ONLY -eq '1') {
+  Write-Host ("EF_PROBE_ONLY: Action='{0}'" -f $Action)
+  exit 0
+}
+# ACTION_NORMALIZATION_END
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -104,34 +122,34 @@ $proj = Split-Path $root -Leaf
 
 switch ($Action) {
   "stop" {
-    Run -Cmd "npx" -CmdArgs @("supabase","stop","--no-backup") -Label "supabase stop --no-backup" | Out-Null
+    Run -Cmd "npx" -CmdArgs @("supabase","stop","--no-backup") -Label "npx supabase stop --no-backup" | Out-Null
     exit 0
   }
 
   "start" {
-    Run -Cmd "npx" -CmdArgs @("supabase","stop","--no-backup") -Label "supabase stop --no-backup" | Out-Null
+    Run -Cmd "npx" -CmdArgs @("supabase","stop","--no-backup") -Label "npx supabase stop --no-backup" | Out-Null
     Cleanup-ProjectContainers $proj
 
-    $r = Run -Cmd "npx" -CmdArgs @("supabase","start") -Label "supabase start"
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","start") -Label "npx supabase start"
     if ($r.Code -ne 0) {
       $cid = Parse-ConflictContainerId $r.Out
       if ($cid) {
         Run -Cmd "docker" -CmdArgs @("rm","-f",$cid) -Label "docker rm -f (conflict id)" | Out-Null
         Cleanup-ProjectContainers $proj
-        $r = Run -Cmd "npx" -CmdArgs @("supabase","start") -Label "supabase start (retry)"
+        $r = Run -Cmd "npx" -CmdArgs @("supabase","start") -Label "npx supabase start (retry)"
       }
     }
     exit $r.Code
   }
 
   "status" {
-    $r = Run -Cmd "npx" -CmdArgs @("supabase","status") -Label "supabase status (raw)" -Echo $true
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","status") -Label "npx supabase status (raw)" -Echo $true
     exit $r.Code
   }
 
   "status-env" {
     # IMPORTANT: do NOT echo raw status output (it contains keys). We only print redacted output.
-    $r = Run -Cmd "npx" -CmdArgs @("supabase","status") -Label "supabase status (raw)" -Echo $false
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","status") -Label "npx supabase status (raw)" -Echo $false
     if ($r.Code -ne 0) { exit $r.Code }
 
     $vals = Extract-StatusValues $r.Out
@@ -140,12 +158,12 @@ switch ($Action) {
         [string]::IsNullOrWhiteSpace($vals.anonKey) -or
         [string]::IsNullOrWhiteSpace($vals.secretKey)) {
       Write-Host (Redact-Keys $r.Out)
-      throw "status-env: could not extract Project URL / DB URL / keys from supabase status output."
+      throw "status-env: could not extract Project URL / DB URL / keys from npx supabase status output."
     }
 
     $envPath = Join-Path $root ".env.local"
     $env = @"
-# Auto-generated from: npx supabase status
+# Auto-generated from: npx npx supabase status
 # UTF-8 no BOM
 NEXT_PUBLIC_SUPABASE_URL=$($vals.projectUrl)
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$($vals.anonKey)
@@ -160,7 +178,7 @@ DATABASE_URL=$($vals.dbUrl)
   }
 
   "reset" {
-    $r = Run -Cmd "npx" -CmdArgs @("supabase","db","reset") -Label "supabase db reset"
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","db","reset") -Label "npx supabase db reset"
     exit $r.Code
   }
 }
