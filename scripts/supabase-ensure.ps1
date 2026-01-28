@@ -18,14 +18,23 @@ function RepoRoot {
 }
 
 function Run([string[]]$Args, [string]$Label) {
+  if ($null -eq $Args -or $Args.Length -lt 1) { throw "Run(): missing command args for '$Label'" }
+
   $old = $ErrorActionPreference
   $ErrorActionPreference = "Continue"  # don't die on stderr noise
   try {
     Write-Host ("----- {0} (begin) -----" -f $Label)
-    $out = & $Args[0] $Args[1..($Args.Length-1)] 2>&1
+
+    $cmd  = $Args[0]
+    $rest = @()
+    if ($Args.Length -gt 1) { $rest = $Args[1..($Args.Length-1)] }
+
+    $out  = & $cmd @rest 2>&1
     $code = $LASTEXITCODE
+
     if ($out) { $out | ForEach-Object { "$_" } | Out-Host }
     Write-Host ("----- {0} (end) exit={1} -----" -f $Label, $code)
+
     return @{ Code = $code; Out = ($out | Out-String) }
   } finally {
     $ErrorActionPreference = $old
@@ -36,7 +45,6 @@ function Cleanup-ProjectContainers([string]$proj) {
   $names = & docker ps -a --format "{{.Names}}" 2>$null
   if (!$names) { return }
 
-  # Supabase CLI names look like: supabase_vector_equity-flow, supabase_db_equity-flow, etc.
   $pattern = "^supabase_.*_$([Regex]::Escape($proj))$"
   $targets = @($names | Where-Object { $_ -match $pattern } | Sort-Object -Unique)
 
@@ -112,7 +120,6 @@ if ($Action -eq "start") {
 
 if ($Action -eq "status") {
   $r = Run @("npx","supabase","status") "supabase status (raw)"
-  # Print raw as-is (caller may want full table)
   exit $r.Code
 }
 
@@ -141,7 +148,6 @@ DATABASE_URL=$($vals.dbUrl)
   Write-Utf8NoBom $envPath $env
   if (Has-Utf8Bom $envPath) { throw ".env.local has a UTF-8 BOM (not allowed)." }
 
-  # Output redacted status for logs
   Write-Host (Redact-Keys $r.Out)
   exit 0
 }
