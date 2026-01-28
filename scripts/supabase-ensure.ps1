@@ -17,24 +17,25 @@ function RepoRoot {
   }
 }
 
-function Run([string[]]$Args, [string]$Label) {
-  if ($null -eq $Args -or $Args.Length -lt 1) { throw "Run(): missing command args for '$Label'" }
+function Run {
+  param(
+    [Parameter(Mandatory=$true)][string]$Cmd,
+    [Parameter()][string[]]$CmdArgs = @(),
+    [Parameter(Mandatory=$true)][string]$Label,
+    [Parameter()][bool]$Echo = $true
+  )
 
   $old = $ErrorActionPreference
-  $ErrorActionPreference = "Continue"  # don't die on stderr noise
+  $ErrorActionPreference = "Continue"  # do not die on stderr noise from node/docker
   try {
     Write-Host ("----- {0} (begin) -----" -f $Label)
 
-    $cmd  = $Args[0]
-    $rest = @()
-    if ($Args.Length -gt 1) { $rest = $Args[1..($Args.Length-1)] }
-
-    $out  = & $cmd @rest 2>&1
+    $out = & $Cmd @CmdArgs 2>&1
     $code = $LASTEXITCODE
 
-    if ($out) { $out | ForEach-Object { "$_" } | Out-Host }
-    Write-Host ("----- {0} (end) exit={1} -----" -f $Label, $code)
+    if ($Echo -and $out) { $out | ForEach-Object { "$_" } | Out-Host }
 
+    Write-Host ("----- {0} (end) exit={1} -----" -f $Label, $code)
     return @{ Code = $code; Out = ($out | Out-String) }
   } finally {
     $ErrorActionPreference = $old
@@ -51,9 +52,7 @@ function Cleanup-ProjectContainers([string]$proj) {
   if ($targets.Count -gt 0) {
     Write-Host "Removing leftover containers for project '$proj':"
     $targets | ForEach-Object { Write-Host ("  {0}" -f $_) }
-    foreach ($n in $targets) {
-      & docker rm -f $n 2>&1 | Out-Host
-    }
+    foreach ($n in $targets) { & docker rm -f $n 2>&1 | Out-Host }
   }
 }
 
@@ -81,10 +80,16 @@ function Redact-Keys([string]$s) {
 }
 
 function Extract-StatusValues([string]$raw) {
-  $projectUrl = ([regex]::Match($raw, '(http://127\.0\.0\.1:54321)\b')).Groups[1].Value
+  # more robust than hard-coding host/port
+  $projectUrl = ([regex]::Match($raw, '(?im)Project\s+URL\s+.*?(https?://[^\s\|]+)')).Groups[1].Value
+  if ([string]::IsNullOrWhiteSpace($projectUrl)) {
+    $projectUrl = ([regex]::Match($raw, '(https?://127\.0\.0\.1:54321)\b')).Groups[1].Value
+  }
+
   $dbUrl      = ([regex]::Match($raw, '(postgresql://[^\s]+)')).Groups[1].Value
   $anonKey    = ([regex]::Match($raw, '(sb_publishable_[A-Za-z0-9_\-]+)')).Groups[1].Value
   $secretKey  = ([regex]::Match($raw, '(sb_secret_[A-Za-z0-9_\-]+)')).Groups[1].Value
+
   return @{
     projectUrl = $projectUrl
     dbUrl      = $dbUrl
@@ -97,47 +102,49 @@ $root = RepoRoot
 Set-Location $root
 $proj = Split-Path $root -Leaf
 
-if ($Action -eq "stop") {
-  Run @("npx","supabase","stop","--no-backup") "supabase stop --no-backup" | Out-Null
-  exit 0
-}
+switch ($Action) {
+  "stop" {
+    Run -Cmd "npx" -CmdArgs @("supabase","stop","--no-backup") -Label "supabase stop --no-backup" | Out-Null
+    exit 0
+  }
 
-if ($Action -eq "start") {
-  Run @("npx","supabase","stop","--no-backup") "supabase stop --no-backup" | Out-Null
-  Cleanup-ProjectContainers $proj
+  "start" {
+    Run -Cmd "npx" -CmdArgs @("supabase","stop","--no-backup") -Label "supabase stop --no-backup" | Out-Null
+    Cleanup-ProjectContainers $proj
 
-  $r = Run @("npx","supabase","start") "supabase start"
-  if ($r.Code -ne 0) {
-    $cid = Parse-ConflictContainerId $r.Out
-    if ($cid) {
-      Run @("docker","rm","-f",$cid) "docker rm -f (conflict id)" | Out-Null
-      Cleanup-ProjectContainers $proj
-      $r = Run @("npx","supabase","start") "supabase start (retry)"
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","start") -Label "supabase start"
+    if ($r.Code -ne 0) {
+      $cid = Parse-ConflictContainerId $r.Out
+      if ($cid) {
+        Run -Cmd "docker" -CmdArgs @("rm","-f",$cid) -Label "docker rm -f (conflict id)" | Out-Null
+        Cleanup-ProjectContainers $proj
+        $r = Run -Cmd "npx" -CmdArgs @("supabase","start") -Label "supabase start (retry)"
+      }
     }
-  }
-  exit $r.Code
-}
-
-if ($Action -eq "status") {
-  $r = Run @("npx","supabase","status") "supabase status (raw)"
-  exit $r.Code
-}
-
-if ($Action -eq "status-env") {
-  $r = Run @("npx","supabase","status") "supabase status (raw)"
-  if ($r.Code -ne 0) { exit $r.Code }
-
-  $vals = Extract-StatusValues $r.Out
-  if ([string]::IsNullOrWhiteSpace($vals.projectUrl) -or
-      [string]::IsNullOrWhiteSpace($vals.dbUrl) -or
-      [string]::IsNullOrWhiteSpace($vals.anonKey) -or
-      [string]::IsNullOrWhiteSpace($vals.secretKey)) {
-    Write-Host (Redact-Keys $r.Out)
-    throw "status-env: could not extract Project URL / DB URL / keys from supabase status output."
+    exit $r.Code
   }
 
-  $envPath = Join-Path $root ".env.local"
-  $env = @"
+  "status" {
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","status") -Label "supabase status (raw)" -Echo $true
+    exit $r.Code
+  }
+
+  "status-env" {
+    # IMPORTANT: do NOT echo raw status output (it contains keys). We only print redacted output.
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","status") -Label "supabase status (raw)" -Echo $false
+    if ($r.Code -ne 0) { exit $r.Code }
+
+    $vals = Extract-StatusValues $r.Out
+    if ([string]::IsNullOrWhiteSpace($vals.projectUrl) -or
+        [string]::IsNullOrWhiteSpace($vals.dbUrl) -or
+        [string]::IsNullOrWhiteSpace($vals.anonKey) -or
+        [string]::IsNullOrWhiteSpace($vals.secretKey)) {
+      Write-Host (Redact-Keys $r.Out)
+      throw "status-env: could not extract Project URL / DB URL / keys from supabase status output."
+    }
+
+    $envPath = Join-Path $root ".env.local"
+    $env = @"
 # Auto-generated from: npx supabase status
 # UTF-8 no BOM
 NEXT_PUBLIC_SUPABASE_URL=$($vals.projectUrl)
@@ -145,14 +152,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=$($vals.anonKey)
 SUPABASE_SERVICE_ROLE_KEY=$($vals.secretKey)
 DATABASE_URL=$($vals.dbUrl)
 "@
-  Write-Utf8NoBom $envPath $env
-  if (Has-Utf8Bom $envPath) { throw ".env.local has a UTF-8 BOM (not allowed)." }
+    Write-Utf8NoBom $envPath $env
+    if (Has-Utf8Bom $envPath) { throw ".env.local has a UTF-8 BOM (not allowed)." }
 
-  Write-Host (Redact-Keys $r.Out)
-  exit 0
-}
+    Write-Host (Redact-Keys $r.Out)
+    exit 0
+  }
 
-if ($Action -eq "reset") {
-  $r = Run @("npx","supabase","db","reset") "supabase db reset"
-  exit $r.Code
+  "reset" {
+    $r = Run -Cmd "npx" -CmdArgs @("supabase","db","reset") -Label "supabase db reset"
+    exit $r.Code
+  }
 }
