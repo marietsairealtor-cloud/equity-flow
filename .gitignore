@@ -70,3 +70,5 @@ supabase/.gitignore
 # Allow committing the latest handoff (snapshots stay ignored)
 !docs/handoff_latest.txt
 
+.tmp.driveupload/
+docs/_debug/

@@ -1,16 +1,21 @@
-=== HANDOFF SNAPSHOT (20260127_153625) ===
+=== HANDOFF SNAPSHOT (20260127_203128) ===
 
 ## A) State header
 Branch: main
-HEAD:   eb6bb85a5c20b65f232648d1647db127ccb06868
+HEAD:   b73c9a54063a3256e30f8c013fe7b88e54a7ff47
 
 git status -sb:
 ## main...origin/main
- M scripts/handoff-snapshot.ps1
-?? scripts/supabase-ensure.ps1
+ M docs/handoff_latest.txt
+ M scripts/supabase-ensure.ps1
+ M supabase/config.toml
+?? $null
+?? .tmp.driveupload/
+?? docs/_debug/
+?? supabase/migrations/20260127192604_tenant_resolution_remove_jwt_refs.sql
 
 git log -1 --oneline:
-eb6bb85 Merge: freeze/2026-01-27-green-local (green local proof)
+b73c9a5 chore: commit latest handoff snapshot pointer
 
 Versions:
 node: v24.13.0
@@ -114,14 +119,14 @@ exit code: 0
 - Environments: .env.local
 
   Creating an optimized production build ...
-âœ“ Compiled successfully in 1545.6ms
+âœ“ Compiled successfully in 1963.5ms
   Running TypeScript ...
   Collecting page data using 23 workers ...
   Generating static pages using 23 workers (0/36) ...
   Generating static pages using 23 workers (9/36) 
   Generating static pages using 23 workers (18/36) 
   Generating static pages using 23 workers (27/36) 
-âœ“ Generating static pages using 23 workers (36/36) in 147.4ms
+âœ“ Generating static pages using 23 workers (36/36) in 251.2ms
   Finalizing page optimization ...
 
 Route (app)
@@ -172,49 +177,14 @@ Route (app)
 ----- npm run build (end) -----
 
 ## F) Diff summary
- scripts/handoff-snapshot.ps1 | 24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
-warning: in the working copy of 'scripts/handoff-snapshot.ps1', CRLF will be replaced by LF the next time Git touches it
+ docs/handoff_latest.txt     | 610 +++++++++++++++++++++++++++++++++++++++++---
+ scripts/supabase-ensure.ps1 | 126 +++++----
+ supabase/config.toml        |   8 +-
+ 3 files changed, 656 insertions(+), 88 deletions(-)
+warning: in the working copy of 'docs/handoff_latest.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/config.toml', LF will be replaced by CRLF the next time Git touches it
 
 ## G) Diff full (truncated if too large)
 ----- git diff (begin) -----
-diff --git a/scripts/handoff-snapshot.ps1 b/scripts/handoff-snapshot.ps1
-index 603a6e9..86ebce6 100644
---- a/scripts/handoff-snapshot.ps1
-+++ b/scripts/handoff-snapshot.ps1
-@@ -1,5 +1,22 @@
--param()
-+ï»¿param()
- 
-+
-+
-+function Run-SupabaseStatus {
-+  try {
-+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/supabase-ensure.ps1 status | Out-Host
-+  } catch {
-+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/supabase-ensure.ps1 start  | Out-Host
-+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/supabase-ensure.ps1 status | Out-Host
-+  }
-+}
-+function Normalize-ProbeCommand([string]$Line) {
-+  if ($null -eq $Line) { return "" }
-+  $s = $Line.Trim()
-+  # Strip markdown bullets like "-", "*", "â€¢"
-+  $s = ($s -replace '^(?:[-\*\u2022]\s+)+', '').Trim()
-+  return $s
-+}
- $ErrorActionPreference = "Stop"
- Set-StrictMode -Version Latest
- 
-@@ -223,4 +240,7 @@ Write-Utf8NoBom $latestPath $text
- try { Set-Clipboard -Value $text } catch {}
- 
- Write-Host ("Wrote: {0}" -f $outFile)
--Write-Host ("Latest snapshot: {0}" -f $latestPath)
-\ No newline at end of file
-+Write-Host ("Latest snapshot: {0}" -f $latestPath)
-+
-+
-+
-warning: in the working copy of 'scripts/handoff-snapshot.ps1', CRLF will be replaced by LF the next time Git touches it
+(git diff too large; see --stat above)
 ----- git diff (end) -----
