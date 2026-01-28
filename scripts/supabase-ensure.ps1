@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory=$true)]
-  [ValidateSet("stop","start","status","reset")]
+  [ValidateSet("stop","start","status","status-env","reset")]
   [string]$Action
 )
 
@@ -18,9 +18,8 @@ function RepoRoot {
 }
 
 function Run([string[]]$Args, [string]$Label) {
-  # stderr-safe: never treat docker "Skipped..." or "Stopped services..." as fatal
   $old = $ErrorActionPreference
-  $ErrorActionPreference = "Continue"
+  $ErrorActionPreference = "Continue"  # don't die on stderr noise
   try {
     Write-Host ("----- {0} (begin) -----" -f $Label)
     $out = & $Args[0] $Args[1..($Args.Length-1)] 2>&1
@@ -34,12 +33,13 @@ function Run([string[]]$Args, [string]$Label) {
 }
 
 function Cleanup-ProjectContainers([string]$proj) {
-  # Deterministic by name pattern (project-suffixed containers)
-  $pattern = "^/supabase_.*_$([Regex]::Escape($proj))$"
   $names = & docker ps -a --format "{{.Names}}" 2>$null
   if (!$names) { return }
 
+  # Supabase CLI names look like: supabase_vector_equity-flow, supabase_db_equity-flow, etc.
+  $pattern = "^supabase_.*_$([Regex]::Escape($proj))$"
   $targets = @($names | Where-Object { $_ -match $pattern } | Sort-Object -Unique)
+
   if ($targets.Count -gt 0) {
     Write-Host "Removing leftover containers for project '$proj':"
     $targets | ForEach-Object { Write-Host ("  {0}" -f $_) }
@@ -50,15 +50,44 @@ function Cleanup-ProjectContainers([string]$proj) {
 }
 
 function Parse-ConflictContainerId([string]$text) {
-  # Example: container "e730...". You have to remove...
   $m = [Regex]::Match($text, 'container\s+"([0-9a-f]{12,64})"', 'IgnoreCase')
   if ($m.Success) { return $m.Groups[1].Value }
   return $null
 }
 
+function Write-Utf8NoBom([string]$Path, [string]$Content) {
+  [System.IO.File]::WriteAllText($Path, $Content, (New-Object System.Text.UTF8Encoding($false)))
+}
+
+function Has-Utf8Bom([string]$Path) {
+  if (!(Test-Path $Path)) { return $false }
+  $b = [System.IO.File]::ReadAllBytes($Path)
+  return ($b.Length -ge 3 -and $b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF)
+}
+
+function Redact-Keys([string]$s) {
+  if ($null -eq $s) { return "" }
+  $s = [Regex]::Replace($s, '(sb_publishable_)[A-Za-z0-9_\-]+', '${1}REDACTED')
+  $s = [Regex]::Replace($s, '(sb_secret_)[A-Za-z0-9_\-]+', '${1}REDACTED')
+  return $s
+}
+
+function Extract-StatusValues([string]$raw) {
+  $projectUrl = ([regex]::Match($raw, '(http://127\.0\.0\.1:54321)\b')).Groups[1].Value
+  $dbUrl      = ([regex]::Match($raw, '(postgresql://[^\s]+)')).Groups[1].Value
+  $anonKey    = ([regex]::Match($raw, '(sb_publishable_[A-Za-z0-9_\-]+)')).Groups[1].Value
+  $secretKey  = ([regex]::Match($raw, '(sb_secret_[A-Za-z0-9_\-]+)')).Groups[1].Value
+  return @{
+    projectUrl = $projectUrl
+    dbUrl      = $dbUrl
+    anonKey    = $anonKey
+    secretKey  = $secretKey
+  }
+}
+
 $root = RepoRoot
 Set-Location $root
-$proj = Split-Path $root -Leaf  # e.g. equity-flow
+$proj = Split-Path $root -Leaf
 
 if ($Action -eq "stop") {
   Run @("npx","supabase","stop","--no-backup") "supabase stop --no-backup" | Out-Null
@@ -66,33 +95,58 @@ if ($Action -eq "stop") {
 }
 
 if ($Action -eq "start") {
-  # Always stop first to avoid "already running" + stale containers
   Run @("npx","supabase","stop","--no-backup") "supabase stop --no-backup" | Out-Null
-
-  # Cleanup known leftover containers (including supabase_vector_<proj>)
   Cleanup-ProjectContainers $proj
 
   $r = Run @("npx","supabase","start") "supabase start"
   if ($r.Code -ne 0) {
-    # If conflict persists, remove specific conflicting container id then retry once
     $cid = Parse-ConflictContainerId $r.Out
     if ($cid) {
-      Write-Host ("Conflict container detected; removing id={0}" -f $cid)
       Run @("docker","rm","-f",$cid) "docker rm -f (conflict id)" | Out-Null
+      Cleanup-ProjectContainers $proj
       $r = Run @("npx","supabase","start") "supabase start (retry)"
     }
   }
-  if ($r.Code -ne 0) { exit $r.Code }
-  exit 0
-}
-
-if ($Action -eq "status") {
-  # Raw status; callers decide parsing. "Stopped services" is non-fatal.
-  $r = Run @("npx","supabase","status") "supabase status (raw)"
   exit $r.Code
 }
 
+if ($Action -eq "status") {
+  $r = Run @("npx","supabase","status") "supabase status (raw)"
+  # Print raw as-is (caller may want full table)
+  exit $r.Code
+}
+
+if ($Action -eq "status-env") {
+  $r = Run @("npx","supabase","status") "supabase status (raw)"
+  if ($r.Code -ne 0) { exit $r.Code }
+
+  $vals = Extract-StatusValues $r.Out
+  if ([string]::IsNullOrWhiteSpace($vals.projectUrl) -or
+      [string]::IsNullOrWhiteSpace($vals.dbUrl) -or
+      [string]::IsNullOrWhiteSpace($vals.anonKey) -or
+      [string]::IsNullOrWhiteSpace($vals.secretKey)) {
+    Write-Host (Redact-Keys $r.Out)
+    throw "status-env: could not extract Project URL / DB URL / keys from supabase status output."
+  }
+
+  $envPath = Join-Path $root ".env.local"
+  $env = @"
+# Auto-generated from: npx supabase status
+# UTF-8 no BOM
+NEXT_PUBLIC_SUPABASE_URL=$($vals.projectUrl)
+NEXT_PUBLIC_SUPABASE_ANON_KEY=$($vals.anonKey)
+SUPABASE_SERVICE_ROLE_KEY=$($vals.secretKey)
+DATABASE_URL=$($vals.dbUrl)
+"@
+  Write-Utf8NoBom $envPath $env
+  if (Has-Utf8Bom $envPath) { throw ".env.local has a UTF-8 BOM (not allowed)." }
+
+  # Output redacted status for logs
+  Write-Host (Redact-Keys $r.Out)
+  exit 0
+}
+
 if ($Action -eq "reset") {
-  Run @("npx","supabase","db","reset") "supabase db reset" | Out-Null
-  exit $LASTEXITCODE
+  $r = Run @("npx","supabase","db","reset") "supabase db reset"
+  exit $r.Code
 }

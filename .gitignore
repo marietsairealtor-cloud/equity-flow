@@ -75,3 +75,4 @@ docs/_debug/
 docs/handoff_latest.txt
 docs/handoff_latest.txt
 docs/handoff_latest.txt
+.env.local
