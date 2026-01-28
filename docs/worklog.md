@@ -1,0 +1,1 @@
+- NOTE: local supabase db reset clears auth.users; for smoke tests seed local accounts (owner@local.test, member@local.test, pw=Password123!).
