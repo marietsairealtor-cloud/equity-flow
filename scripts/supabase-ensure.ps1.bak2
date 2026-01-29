@@ -1,0 +1,108 @@
+param(
+  [Parameter(Mandatory=$true)]
+  [ValidateSet('start','stop','reset','status-env')]
+  [string]$cmd
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Exec([string]$label, [string]$command) {
+  Write-Host ("--- {0} ---" -f $label)
+  $out = cmd /c "$command 2>&1"
+  $code = $LASTEXITCODE
+  $out | ForEach-Object { $_ }
+  if ($code -ne 0) { throw "$label failed (exit=$code)" }
+}
+
+function Ensure-TempProfile {
+  $tmpDir = Join-Path $PSScriptRoot "..\supabase\.temp"
+  New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
+  $profilePath = Join-Path $tmpDir "profile"
+  # Use your existing CLI profile name
+  [System.IO.File]::WriteAllBytes($profilePath, [System.Text.Encoding]::UTF8.GetBytes("supabase`n"))
+}
+
+Ensure-TempProfile
+
+switch ($cmd) {
+  'stop' {
+    Write-Host "--- supabase stop ---"
+    cmd /c "npx supabase stop --no-backup --debug 2>&1" | ForEach-Object { param(
+  [Parameter(Mandatory=$true)]
+  [ValidateSet('start','stop','reset','status-env')]
+  [string]$cmd
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Exec([string]$label, [string]$command) {
+  Write-Host ("--- {0} ---" -f $label)
+  $out = cmd /c "$command 2>&1"
+  $code = $LASTEXITCODE
+  $out | ForEach-Object { $_ }
+  if ($code -ne 0) { throw "$label failed (exit=$code)" }
+}
+
+function Ensure-TempProfile {
+  $tmpDir = Join-Path $PSScriptRoot "..\supabase\.temp"
+  New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
+  $profilePath = Join-Path $tmpDir "profile"
+  # Use your existing CLI profile name
+  [System.IO.File]::WriteAllBytes($profilePath, [System.Text.Encoding]::UTF8.GetBytes("supabase`n"))
+}
+
+Ensure-TempProfile
+
+switch ($cmd) {
+  'stop' {
+    Exec "supabase stop"  "npx supabase stop --no-backup --debug"
+  }
+
+  'start' {
+    Exec "supabase stop"  "npx supabase stop --no-backup --debug"
+    Exec "supabase start" "npx supabase start --debug"
+  }
+
+  'reset' {
+    Exec "supabase stop"  "npx supabase stop --no-backup --debug"
+    Exec "supabase reset" "npx supabase db reset --debug"
+    Exec "supabase start" "npx supabase start --debug"
+  }
+
+  'status-env' {
+    Exec "supabase status" "npx supabase status --debug"
+    # Also write .env.local from current status-env logic: reuse supabase status output from CLI is brittle,
+    # so we simply ensure .env.local exists by asking supabase to print status and then calling your existing npm script if present.
+    if (Test-Path ".\scripts\status-env.ps1") {
+      powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\status-env.ps1
+    } else {
+      Write-Host "NOTE: scripts/status-env.ps1 not found; .env.local generation skipped."
+    }
+  }
+} }
+  }
+
+  'start' {
+    Exec "supabase stop"  "npx supabase stop --no-backup --debug"
+    Exec "supabase start" "npx supabase start --debug"
+  }
+
+  'reset' {
+    Exec "supabase stop"  "npx supabase stop --no-backup --debug"
+    Exec "supabase reset" "npx supabase db reset --debug"
+    Exec "supabase start" "npx supabase start --debug"
+  }
+
+  'status-env' {
+    Exec "supabase status" "npx supabase status --debug"
+    # Also write .env.local from current status-env logic: reuse supabase status output from CLI is brittle,
+    # so we simply ensure .env.local exists by asking supabase to print status and then calling your existing npm script if present.
+    if (Test-Path ".\scripts\status-env.ps1") {
+      powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\status-env.ps1
+    } else {
+      Write-Host "NOTE: scripts/status-env.ps1 not found; .env.local generation skipped."
+    }
+  }
+}

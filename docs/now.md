@@ -1,5 +1,5 @@
-Date: 2026-01-27 (America/Toronto)
-Goal: Standardize cross-chat handoff so the next chat can continue with zero re-explaining.
+Date: 2026-01-28 (America/Toronto)
+Goal: auth/session stable + workspace select/gate path (start smoke test)
 
 Mode: local
 Target DB: local Supabase stack (Docker required)
@@ -70,12 +70,12 @@ Do-not-touch:
 - RLS changes
 - old migrations / migration history
 - feature work beyond handoff automation + deterministic local bring-up/proof loop
-Blocker: None (previous blockers fixed; remaining risk: intermittent Docker container conflicts handled by scripts/supabase-ensure.ps1).
-Repro: Run: npm run handoff
+Blocker: logged-in user (owner@local.test, userId 1341cd0b-26c6-478c-b178-51682234c8c0) has no entitlements because there’s no membership row for this user yet (state probe shows entitlements: []). Also schema drift remains: tenants.name does not exist; earlier app expects membership fields tier/status (we added migrations for these); DB has a bad FK expectation (tenant_memberships_user_id_fkey points to public.users, but that table does not exist) and needs a forward-fix to reference auth.users(id) before seeding memberships.
+Repro: login succeeds; navigating to /app/workspace shows no workspaces; state probe shows me populated but entitlements empty.
 Actual: Verified end-to-end (green loop: start -> status-env -> build -> handoff).
 Probe: powershell -File scripts/supabase-ensure.ps1 start; powershell -File scripts/supabase-ensure.ps1 status-env; npm run build
 Last known good probe: 2026-01-27: green loop passed.
-Last change: Tenant-resolution lock migration + hard gate local-proof + storage spec docs (docs/storage.md)
+Last change: Tenant-resolution lock migration + hard gate local-proof + storage spec docs (docs/storage.md)added create_workspace RPC migration, and fixed Next 16 /login searchParams handling (and/or redirect to /auth/login if you applied that).
 Hypothesis: Prior handoff/proof failures were caused by BOM/encoding corruption, Docker leftover container conflicts, and brittle parsing/execution of noisy supabase status + probe lines; enforcing scripted start/cleanup, redacted status-env, UTF-8 no BOM writers, and strict required-field gating eliminates drift.
 Test: Run the canonical loop twice: scripts/supabase-ensure.ps1 start ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬TM scripts/supabase-ensure.ps1 status-env ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬TM npm run build ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬TM npm run handoff; confirm handoff_snapshot_*.txt + handoff_latest.txt written, snapshot contains sections CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œG, and git status -sb is clean.
 Patch: Implemented scripts/supabase-ensure.ps1 (start cleanup + conflict-id retry; status-env extracts status fields, writes .env.local UTF-8 no BOM, redacts keys) and updated handoff/probe handling so npm run handoff is deterministic and doesnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢t break on noisy output.

@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
+            // Localhost-safe cookie flags
+            const o = { ...options, secure: false, sameSite: "lax" as const };
+            res.cookies.set(name, value, o);
           });
         },
       },
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL(`/login?err=${encodeURIComponent(error.message)}`, req.url),
+      new URL(`/auth/login?err=${encodeURIComponent(error.message)}`, req.url),
       { status: 303 }
     );
   }

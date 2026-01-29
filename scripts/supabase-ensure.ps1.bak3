@@ -7,9 +7,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Force the CLI to use the named profile, and avoid any repo-local profile file.
-$env:SUPABASE_PROFILE = "supabase"
-
 function Run-Cmd([string]$label, [string]$command, [bool]$allowFail = $false) {
   Write-Host ("--- {0} ---" -f $label)
   $out = cmd /c "$command 2>&1"
@@ -19,12 +16,19 @@ function Run-Cmd([string]$label, [string]$command, [bool]$allowFail = $false) {
   return $code
 }
 
-# Remove any repo-local profile file that breaks the CLI
-$repoProfile = ".\supabase\.temp\profile"
-if (Test-Path $repoProfile) { Remove-Item -Force $repoProfile }
+function Ensure-TempProfile {
+  $tmpDir = Join-Path $PSScriptRoot "..\supabase\.temp"
+  New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
+  $profilePath = Join-Path $tmpDir "profile"
+  # Use existing CLI profile name (supabase)
+  [System.IO.File]::WriteAllBytes($profilePath, [System.Text.Encoding]::UTF8.GetBytes("supabase`n"))
+}
+
+Ensure-TempProfile
 
 switch ($cmd) {
   'stop' {
+    # Stop should never block progress
     Run-Cmd "supabase stop" "npx supabase stop --no-backup --debug" $true | Out-Null
   }
 

@@ -1,0 +1,17 @@
+﻿=== db reset --debug capture 2026-01-28T14:48:55.3835291-05:00 ===
+PWD: C:\Users\marie\projects\equity-flow
+Loading profile from flag: supabase
+Supabase CLI 2.72.8
+Using profile: supabase (supabase.co)
+[?25l[?2004hPruned containers: []
+Pruned volumes: []
+Pruned network: []
+
+Γú╜ Stopping containers...
+[2K
+[?2004l[?25h[?1002l[?1003l[?1006lStopped supabase local development setup.
+Loading profile from flag: supabase
+Supabase CLI 2.72.8
+Using profile: supabase (supabase.co)
+supabase start is not running.
+EXITCODE: 1

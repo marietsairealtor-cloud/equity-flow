@@ -1,0 +1,7 @@
+﻿=== supabase status fail capture 2026-01-28T14:21:38.1351020-05:00 ===
+PWD: C:\Users\marie\projects\equity-flow
+Loading profile from file: supabase\.temp\profile
+Supabase CLI 2.72.8
+Using profile: supabase (supabase.co)
+failed to inspect container health: Error response from daemon: No such container: supabase_db_equity-flow
+EXITCODE: 1

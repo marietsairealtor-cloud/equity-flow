@@ -1,0 +1,85 @@
+﻿=== db push (begin) ===
+PWD: C:\Users\marie\projects\equity-flow
+Latest migration: 20260128140341_rpc_signature_align.sql
+--- latest migration head (80 lines) ---
+-- Align RPC signatures with app payload keys (PostgREST requires param names)
+-- No 
+OK: PostgREST schema cache resolves all RPC endpoints.; use single-quoted bodies.
+
+begin;
+
+-- A) accept_invite_rpc(text) currently has param name token; app sends p_token
+do
+language plpgsql
+as '
+begin
+  if exists (
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = ''public''
+      and p.proname = ''accept_invite_rpc''
+      and pg_get_function_identity_arguments(p.oid) = ''token text''
+  ) then
+    execute ''alter function public.accept_invite_rpc(text) rename to accept_invite_rpc__v1'';
+  end if;
+end;
+';
+
+create or replace function public.accept_invite_rpc(p_token text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as 'select public.accept_invite_rpc__v1(p_token);';
+
+grant execute on function public.accept_invite_rpc(text) to authenticated;
+
+-- B) revoke_invite_rpc(uuid) currently has param name invite_id; app sends p_invite_id
+do
+language plpgsql
+as '
+begin
+  if exists (
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = ''public''
+      and p.proname = ''revoke_invite_rpc''
+      and pg_get_function_identity_arguments(p.oid) = ''invite_id uuid''
+  ) then
+    execute ''alter function public.revoke_invite_rpc(uuid) rename to revoke_invite_rpc__v1'';
+  end if;
+end;
+';
+
+create or replace function public.revoke_invite_rpc(p_invite_id uuid)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as 'select public.revoke_invite_rpc__v1(p_invite_id);';
+
+grant execute on function public.revoke_invite_rpc(uuid) to authenticated;
+
+-- C) create_invite_rpc(text) wrapper: app sends only p_invited_email (tenant comes from current_tenant_id())
+create or replace function public.create_invite_rpc(p_invited_email text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as 'select public.create_invite_rpc(public.current_tenant_id(), p_invited_email);';
+
+grant execute on function public.create_invite_rpc(text) to authenticated;
+
+-- D) set_current_tenant_rpc(uuid): app sends p_tenant_id
+create or replace function public.set_current_tenant_rpc(p_tenant_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as '
+declare
+  v_uid uuid;
+begin
+--- db push output ---

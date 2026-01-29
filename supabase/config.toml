@@ -2,8 +2,7 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "equity-flow"
-
+project_id = "equityflow"
 [api]
 enabled = true
 # Port to use for the API URL.
@@ -353,8 +352,8 @@ allow_dynamic_registration = false
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
-# `per_worker` (default) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â enables hot reload during local development.
-# `oneshot` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â fallback mode if hot reload causes issues (e.g. in large repos or with symlinks).
+# `per_worker` (default) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â enables hot reload during local development.
+# `oneshot` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â fallback mode if hot reload causes issues (e.g. in large repos or with symlinks).
 policy = "per_worker"
 # Port to attach the Chrome inspector for debugging edge functions.
 inspector_port = 8083
